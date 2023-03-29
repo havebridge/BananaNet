@@ -3,9 +3,13 @@
 #include <iostream>
 #include <string>
 
-
-
+#ifdef _WIN32
 #include <WinSock2.h>
+#endif
+
+
+#include "thread_pool.h"
+
 
 #pragma comment(lib, "Ws2_32.lib")
 
@@ -35,7 +39,5 @@ namespace Hnet
 		void Start();
 	private:
 		void setup();
-		void task();
-		void send();
 	};
 }

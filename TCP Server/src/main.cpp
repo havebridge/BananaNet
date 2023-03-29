@@ -20,6 +20,6 @@ int main(int argc, char** argv)
 #endif
 
 
-	std::cout << "Hey\n";
+	//std::cout << "Hey\n";
 	return 0;
 }
