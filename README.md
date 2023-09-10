@@ -1,2 +1,2 @@
-# hnet
+# hnet(UDP chat)
 -----------
