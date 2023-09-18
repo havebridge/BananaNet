@@ -5,9 +5,12 @@ int main(int argc, char** argv)
 	(void)argc;
 	(void)argv;
 
-	Hnet::Client client("127.0.0.1", 8888);
+	UDPChat::Client client;
 
-	client.Connect();
+	if (client.Connect("127.0.0.1", 8888))
+	{
+		client.Run();
+	}
 
 	return 0;
 }

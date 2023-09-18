@@ -3,45 +3,38 @@
 #pragma warning(disable: 4996)
 
 
-namespace Hnet
+namespace UDPChat
 {
-	Client::Client(std::string ip, int port)
+	Client::Client()
 		:
 		wsa{ 0 },
 		clientsocket(INVALID_SOCKET),
-		port(port),
-		ip(ip),
 		info{ 0 },
 		infolength(sizeof(info)),
 		recvlength(0),
 		sendlength(0) {}
 
-	void Client::init()
+
+	bool Client::Connect(std::string ip, int port)
 	{
 		if ((WSAStartup(MAKEWORD(2, 2), &wsa)) == -1)
 		{
-			WSACleanup();
-			closesocket(clientsocket);
-			fprintf(stderr, "WSAStartup failed.\n");
-			exit(EXIT_FAILURE);
+			perror("WSAStartup");
+			return false;
 		}
 
 		if ((clientsocket = socket(PF_INET, SOCK_DGRAM, 0)) == SOCKET_ERROR)
 		{
-			WSACleanup();
-			closesocket(clientsocket);
 			perror("socket");
-			exit(EXIT_FAILURE);
+			return false;
 		}
 
 		char yes = '1';
 
 		if ((setsockopt(clientsocket, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int)) == -1))
 		{
-			WSACleanup();
-			closesocket(clientsocket);
 			perror("setsockport");
-			exit(EXIT_FAILURE);
+			return false;
 		}
 
 		info.sin_family = AF_INET;
@@ -49,23 +42,22 @@ namespace Hnet
 		info.sin_addr.s_addr = inet_addr(ip.c_str());
 
 		ZeroMemory(info.sin_zero, 8);
+
+		return true;
 	}
 
-
-	void Client::Connect()
+	void Client::Run()
 	{
-		init();
-
 		for (;;)
 		{
-			send();
-			recieve();
-			proccess();
+			Send();
+			Recieve();
+			Process();
 		}
 	}
 
 
-	void Client::send()
+	void Client::Send()
 	{
 		std::cout << "Enter a message: ";
 		std::getline(std::cin, message);
@@ -73,26 +65,22 @@ namespace Hnet
 
 		if ((sendlength = sendto(clientsocket, message.c_str(), message.size(), 0, (struct sockaddr*) & info, infolength)) == 0)
 		{
-			WSACleanup();
-			closesocket(clientsocket);
 			perror("send");
-			exit(EXIT_FAILURE);
+			return;
 		}
 	}
 
-	void Client::recieve()
+	void Client::Recieve()
 	{
 		if ((recvlength = recvfrom(clientsocket, buffer, SIZE, 0, (struct sockaddr*) & info, &infolength)) == 0)
 		{
-			WSACleanup();
-			closesocket(clientsocket);
 			perror("recvfrom");
-			exit(EXIT_FAILURE);
+			return;
 		}
 	}
 
 
-	void Client::proccess()
+	void Client::Process()
 	{
 		std::cout << "Got the packet from:" << inet_ntoa(info.sin_addr) << ":" << htons(info.sin_port) << '\n';
 		std::cout << "Data:";
