@@ -3,45 +3,40 @@
 #pragma warning(disable: 4996)
 
 
-namespace Hnet
+namespace UDPChat
 {
 	Server::Server(std::string ip, int port)
 		:
 		wsa{ 0 },
 		serversocket(INVALID_SOCKET),
+		ip(std::move(ip)),
 		port(port),
-		ip(ip),
 		info{ 0 },
 		infolength(sizeof(info)),
 		recvlength(0),
 		sendlength(0) {}
 
-	void Server::init()
+
+	bool Server::Init()
 	{
 		if ((WSAStartup(MAKEWORD(2, 2), &wsa)) == -1)
 		{
-			WSACleanup();
-			closesocket(serversocket);
-			fprintf(stderr, "WSAStartup failed.\n");
-			exit(EXIT_FAILURE);
+			perror("WSAStartup");
+			return false;
 		}
 
 		if ((serversocket = socket(PF_INET, SOCK_DGRAM, 0)) == SOCKET_ERROR)
 		{
-			WSACleanup();
-			closesocket(serversocket);
 			perror("socket");
-			exit(EXIT_FAILURE);
+			return false;
 		}
 
 		char yes = '1';
 
 		if ((setsockopt(serversocket, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int)) == -1))
 		{
-			WSACleanup();
-			closesocket(serversocket);
 			perror("setsockport");
-			exit(EXIT_FAILURE);
+			return false;
 		}
 
 		info.sin_family = AF_INET;
@@ -52,64 +47,54 @@ namespace Hnet
 
 		if ((bind(serversocket, (struct sockaddr*) & info, infolength) == -1))
 		{
-			WSACleanup();
-			closesocket(serversocket);
 			perror("bind");
-			exit(EXIT_FAILURE);
+			return false;
 		}
 
 
 		std::cout << "UDP Server started at:" << inet_ntoa(info.sin_addr) << ":" << htons(info.sin_port) << '\n';
-	}
 
+		return true;
+	}
 
 	void Server::Start()
 	{
-		init();
-
 		for (;;)
 		{
-			recieve();
-			proccess();
-			send();
+			Recieve();
+			Process();
+			Send();
 		}
 	}
 
-
-	void Server::recieve()
+	void Server::Recieve()
 	{
 		if ((recvlength = recvfrom(serversocket, buffer, SIZE, 0, (struct sockaddr*) & info, &infolength)) == 0)
 		{
-			WSACleanup();
-			closesocket(serversocket);
 			perror("recvfrom");
-			exit(EXIT_FAILURE);
+			return;
 		}
 	}
 
-	
-	void Server::proccess()
+	void Server::Process()
 	{
 		std::cout << "Got the packet from:" << inet_ntoa(info.sin_addr) << ":" << htons(info.sin_port) << '\n';
 		std::cout << "Data:";
-
-			
+	
 		for (int i = 0; i != recvlength; ++i)
 		{
 			std::cout << buffer[i];
 		}
+
 		std::cout << '\n';
 	}
 
-
-	void Server::send()
+	void Server::Send()
 	{
 		if ((sendlength = sendto(serversocket, buffer, recvlength, 0, (struct sockaddr*) & info, infolength)) == 0)
 		{
-			WSACleanup();
-			closesocket(serversocket);
 			perror("send");
-			exit(EXIT_FAILURE);
+			return;
 		}
 	}
 

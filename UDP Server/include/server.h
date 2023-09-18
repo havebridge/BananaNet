@@ -5,11 +5,10 @@
 
 #include <WinSock2.h>
 
-#pragma comment(lib, "Ws2_32.lib")
 
 #define SIZE 128
 
-namespace Hnet
+namespace UDPChat
 {
 	class Server
 	{
@@ -24,15 +23,22 @@ namespace Hnet
 		int sendlength;
 		char buffer[SIZE];
 		std::string message;
-	public:
-		Server(std::string, int);
-		~Server();
-	public:
-		void Start();
+
 	private:
-		void init();
-		void recieve();
-		void proccess();
-		void send();
+		void Recieve();
+		void Process();
+		void Send();
+
+	public:
+		explicit Server(std::string ip, int port);
+		Server(const Server&) = delete;
+		Server operator=(const Server&) = delete;
+		~Server();
+
+	public:
+		bool Init();
+
+		void Start();
+		void Stop();
 	};
 }
