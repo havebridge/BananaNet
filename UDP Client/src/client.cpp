@@ -8,11 +8,9 @@ namespace UDPChat
 	Client::Client()
 		:
 		wsa{ 0 },
-		clientsocket(INVALID_SOCKET),
-		info{ 0 },
-		infolength(sizeof(info)),
-		recvlength(0),
-		sendlength(0) {}
+		client_socket(INVALID_SOCKET),
+		client_info{ 0 },
+		client_info_lenght(sizeof(client_info)) {}
 
 
 	bool Client::Connect(std::string ip, int port)
@@ -23,7 +21,7 @@ namespace UDPChat
 			return false;
 		}
 
-		if ((clientsocket = socket(PF_INET, SOCK_DGRAM, 0)) == SOCKET_ERROR)
+		if ((client_socket = socket(PF_INET, SOCK_DGRAM, 0)) == SOCKET_ERROR)
 		{
 			perror("socket");
 			return false;
@@ -31,33 +29,41 @@ namespace UDPChat
 
 		char yes = '1';
 
-		if ((setsockopt(clientsocket, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int)) == -1))
+		if ((setsockopt(client_socket, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int)) == -1))
 		{
 			perror("setsockport");
 			return false;
 		}
 
-		info.sin_family = AF_INET;
-		info.sin_port = htons(port);
-		info.sin_addr.s_addr = inet_addr(ip.c_str());
+		client_info.sin_family = AF_INET;
+		client_info.sin_port = htons(port);
+		client_info.sin_addr.s_addr = inet_addr(ip.c_str());
 
-		ZeroMemory(info.sin_zero, 8);
+		ZeroMemory(client_info.sin_zero, 8);
 
 		return true;
 	}
 
 	void Client::Run()
 	{
-		for (;;)
+		//std::cout << "Enter a message: ";
+		
+		if (sendto(client_socket, reinterpret_cast<char*>(&client_info.sin_addr), 9, 0, (sockaddr*)&client_info, client_info_lenght) <= 0)
 		{
-			Send();
-			Recieve();
-			Process();
+			perror("sendto first client ip");
+			return;
+		}
+
+
+		if (sendto(client_socket, reinterpret_cast<char*>(&client_info.sin_port), sizeof(USHORT), 0, (sockaddr*)&client_info, client_info_lenght) <= 0)
+		{
+			perror("sendto first client port");
+			return;
 		}
 	}
 
 
-	void Client::Send()
+	/*void Client::Send()
 	{
 		std::cout << "Enter a message: ";
 		std::getline(std::cin, message);
@@ -90,12 +96,12 @@ namespace UDPChat
 			std::cout << buffer[i];
 		}
 		std::cout << '\n';
-	}
+	}*/
 
 
 	Client::~Client()
 	{
 		WSACleanup();
-		closesocket(clientsocket);
+		closesocket(client_socket);
 	}
 }	

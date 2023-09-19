@@ -14,21 +14,11 @@ namespace UDPChat
 	{
 	private:
 		WSAData wsa;
-		SOCKET clientsocket;
-		int port;
-		std::string ip;
-		struct sockaddr_in info;
-		int infolength;
-		int recvlength;
-		int sendlength;
-		char buffer[SIZE];
-		std::string message;
-
-	private:
-		void Init();
-		void Send();
-		void Recieve();
-		void Process();
+		SOCKET client_socket;
+		struct sockaddr_in client_info;
+		int client_info_lenght;
+		char* message;
+		int message_size;
 
 	public:
 		explicit Client();
