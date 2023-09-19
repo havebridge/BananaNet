@@ -4,9 +4,10 @@
 #include <string>
 
 #include <WinSock2.h>
+#include <Windows.h>
 
 
-#define SIZE 128
+#define	MAX_NUM_CLIENTS 2
 
 namespace UDPChat
 {
@@ -14,20 +15,27 @@ namespace UDPChat
 	{
 	private:
 		WSAData wsa;
-		SOCKET serversocket;
+
+		SOCKET server_socket;
 		int port;
 		std::string ip;
-		struct sockaddr_in info;
-		int infolength;
-		int recvlength;
-		int sendlength;
-		char buffer[SIZE];
-		std::string message;
+
+		struct sockaddr_in server_info;
+		int server_info_lenght;
+
+		char* message;
+		int message_size;
+
+		SOCKET first_client;
+		char first_client_ip[10];
+		int first_client_port[10];
+
+		SOCKET second_client;
+		char* second_client_ip;
+		int second_client_port;
 
 	private:
-		void Recieve();
-		void Process();
-		void Send();
+		void FirstClientHandler();
 
 	public:
 		explicit Server(std::string ip, int port);

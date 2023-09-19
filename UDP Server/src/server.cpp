@@ -8,13 +8,14 @@ namespace UDPChat
 	Server::Server(std::string ip, int port)
 		:
 		wsa{ 0 },
-		serversocket(INVALID_SOCKET),
+		server_socket(INVALID_SOCKET),
 		ip(std::move(ip)),
 		port(port),
-		info{ 0 },
-		infolength(sizeof(info)),
-		recvlength(0),
-		sendlength(0) {}
+		server_info{ 0 },
+		server_info_lenght(sizeof(server_info)),
+		message_size(0),
+		first_client(INVALID_SOCKET),
+		second_client(INVALID_SOCKET) {}
 
 
 	bool Server::Init()
@@ -25,7 +26,7 @@ namespace UDPChat
 			return false;
 		}
 
-		if ((serversocket = socket(PF_INET, SOCK_DGRAM, 0)) == SOCKET_ERROR)
+		if ((server_socket = socket(PF_INET, SOCK_DGRAM, 0)) == SOCKET_ERROR)
 		{
 			perror("socket");
 			return false;
@@ -33,74 +34,78 @@ namespace UDPChat
 
 		char yes = '1';
 
-		if ((setsockopt(serversocket, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int)) == -1))
+		if ((setsockopt(server_socket, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int)) == -1))
 		{
 			perror("setsockport");
 			return false;
 		}
 
-		info.sin_family = AF_INET;
-		info.sin_port = htons(port);
-		info.sin_addr.s_addr = inet_addr(ip.c_str());
+		server_info.sin_family = AF_INET;
+		server_info.sin_port = htons(port);
+		server_info.sin_addr.s_addr = inet_addr(ip.c_str());
 
-		ZeroMemory(info.sin_zero, 8);
+		ZeroMemory(server_info.sin_zero, 8);
 
-		if ((bind(serversocket, (struct sockaddr*) & info, infolength) == -1))
+		if (bind(server_socket, (const sockaddr*)&server_info, server_info_lenght) == -1)
 		{
+			std::cout << WSAGetLastError() << '\n';
 			perror("bind");
 			return false;
 		}
 
-
-		std::cout << "UDP Server started at:" << inet_ntoa(info.sin_addr) << ":" << htons(info.sin_port) << '\n';
+		std::cout << "UDP Server started at:" << inet_ntoa(server_info.sin_addr) << ":" << htons(server_info.sin_port) << '\n';
 
 		return true;
 	}
 
-	void Server::Start()
+	void Server::FirstClientHandler()
 	{
-		for (;;)
+		/*if (recvfrom(server_socket, (char*)message_size, sizeof(char), 0, (sockaddr*)&server_info, &server_info_lenght) <= 0)
 		{
-			Recieve();
-			Process();
-			Send();
-		}
-	}
-
-	void Server::Recieve()
-	{
-		if ((recvlength = recvfrom(serversocket, buffer, SIZE, 0, (struct sockaddr*) & info, &infolength)) == 0)
-		{
-			perror("recvfrom");
+			perror("recvfrom message size");
 			return;
 		}
-	}
 
-	void Server::Process()
-	{
-		std::cout << "Got the packet from:" << inet_ntoa(info.sin_addr) << ":" << htons(info.sin_port) << '\n';
-		std::cout << "Data:";
-	
-		for (int i = 0; i != recvlength; ++i)
+		if (recvfrom(server_socket, message, message_size, 0, (sockaddr*)&server_info, &server_info_lenght) <= 0)
 		{
-			std::cout << buffer[i];
-		}
+			perror("recvfrom message");
+			return;
+		}*/
 
-		std::cout << '\n';
-	}
-
-	void Server::Send()
-	{
-		if ((sendlength = sendto(serversocket, buffer, recvlength, 0, (struct sockaddr*) & info, infolength)) == 0)
+		/*if (sendto(server_socket, "1", 1, 0, (sockaddr*)&server_info, server_info_lenght) <= 0)
 		{
 			perror("send");
 			return;
-		}
+		}*/
 	}
+
+	void Server::Start()
+	{
+		//FirstClientHandler();
+
+		//CreateThread(NULL, NULL, (LPTHREAD_START_ROUTINE)ClientHandler, (LPVOID)(i), NULL, NULL);
+
+		if (recvfrom(server_socket, first_client_ip, 10, 0, (sockaddr*)&server_info, &server_info_lenght) <= 0)
+		{
+			std::cout << WSAGetLastError() << '\n';
+			perror("recvfrom first client ip");
+			return;
+		}
+
+		if (recvfrom(server_socket, (char*)first_client_port, 10, 0, (sockaddr*)&server_info, &server_info_lenght) <= 0)
+		{
+			perror("recvfrom first client port");
+			return;
+		}
+
+		
+		
+	}
+
 
 	Server::~Server()
 	{
 		WSACleanup();
-		closesocket(serversocket);
+		closesocket(server_socket);
 	}
 }
