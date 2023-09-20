@@ -3,10 +3,8 @@
 #include <iostream>
 #include <string>
 
-#include <WinSock2.h>
+#include "../../Core.h"
 
-
-#define SIZE 128
 
 namespace UDPChat
 {
@@ -19,6 +17,9 @@ namespace UDPChat
 		int client_info_lenght;
 		char* message;
 		int message_size;
+
+	private:
+		void SendInfo();
 
 	public:
 		explicit Client();
