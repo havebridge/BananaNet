@@ -3,8 +3,7 @@
 #include <iostream>
 #include <string>
 
-#include <WinSock2.h>
-#include <Windows.h>
+#include "../../Core.h"
 
 
 #define	MAX_NUM_CLIENTS 2
@@ -26,16 +25,15 @@ namespace UDPChat
 		char* message;
 		int message_size;
 
-		SOCKET first_client;
-		char first_client_ip[10];
-		int first_client_port[10];
+		struct sockaddr_in first_client_info;
+		int first_client_info_lenght;
 
-		SOCKET second_client;
-		char* second_client_ip;
-		int second_client_port;
+		struct sockaddr_in second_client_info;
+		int second_client_info_lenght;
 
 	private:
 		void FirstClientHandler();
+		void SecondClientHandler();
 
 	public:
 		explicit Server(std::string ip, int port);
