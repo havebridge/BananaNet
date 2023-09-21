@@ -31,9 +31,10 @@ namespace UDPChat
 		struct sockaddr_in second_client_info;
 		int second_client_info_lenght;
 
+		bool two = false;
+
 	private:
-		void FirstClientHandler();
-		void SecondClientHandler();
+		void ClientsHandler();
 
 	public:
 		explicit Server(std::string ip, int port);

@@ -10,3 +10,6 @@
 
 
 #define INET_ADDRSTRLEN 10
+
+#define DEBUG 1
+#define RELEASE 0
