@@ -15,7 +15,9 @@ namespace UDPChat
 		server_info_lenght(sizeof(server_info)),
 		message_size(0),
 		first_client_info{ 0 },
-		second_client_info{ 0 } {}
+		second_client_info{ 0 },
+		is_first_client_connected(false),
+		is_second_client_connected(false) {}
 
 
 	bool Server::Init()
@@ -60,11 +62,11 @@ namespace UDPChat
 
 	void Server::ClientsHandler()
 	{
-		if (two == false)
+		if (is_first_client_connected == false)
 		{
 			char* ip = new char[INET_ADDRSTRLEN + 1];
 
-			if (recvfrom(server_socket, ip, 10, 0, (sockaddr*)&server_info, &server_info_lenght) <= 0)
+			if (recvfrom(server_socket, ip, INET_ADDRSTRLEN, 0, (sockaddr*)&server_info, &server_info_lenght) <= 0)
 			{
 				std::cout << WSAGetLastError() << '\n';
 				perror("recvfrom first client ip");
@@ -84,34 +86,31 @@ namespace UDPChat
 			}
 
 			first_client_info.sin_port = port;
+			first_client_info.sin_family = AF_INET;
+
+			ZeroMemory(first_client_info.sin_zero, 8);
 
 			std::cout << "First client is handled\n";
 			std::cout << "IP: " << inet_ntoa(first_client_info.sin_addr) << " PORT: " << std::to_string(first_client_info.sin_port) << '\n';
 			delete[] ip;
 
-			two = true;
+			is_first_client_connected = true;
+			return;
 		}
 		else
 		{
 			char* ip = new char[INET_ADDRSTRLEN + 1];
 
-			if (recvfrom(server_socket, ip, 10, 0, (sockaddr*)&server_info, &server_info_lenght) <= 0)
+			if (recvfrom(server_socket, ip, INET_ADDRSTRLEN, 0, (sockaddr*)&server_info, &server_info_lenght) <= 0)
 			{
 				std::cout << WSAGetLastError() << '\n';
 				perror("recvfrom first client ip");
 				return;
 			}
 
-#ifdef DEBUG
-			std::cout << ip << '\n';
-#endif
-
 			second_client_info.sin_addr.s_addr = reinterpret_cast<u_short>(ip);
 			inet_pton(AF_INET, ip, &(second_client_info.sin_addr));
 
-#ifdef DEBUG
-			std::cout << inet_ntoa(second_client_info.sin_addr) << '\n';
-#endif
 			int port = 0;
 
 			if (recvfrom(server_socket, (char*)&port, sizeof(int), 0, (sockaddr*)&server_info, &server_info_lenght) <= 0)
@@ -121,41 +120,31 @@ namespace UDPChat
 				return;
 			}
 
-#ifdef DEBUG
-			std::cout << port << '\n';
-#endif
-
 			second_client_info.sin_port = port;
+			second_client_info.sin_family = AF_INET;
 
-#ifdef DEBUG
-			std::cout << std::to_string(second_client_info.sin_port) << '\n';
-#endif
+			ZeroMemory(second_client_info.sin_zero, 8);
 
 			std::cout << "Second client is handled\n";
 			std::cout << "IP: " << inet_ntoa(second_client_info.sin_addr) << " PORT: " << std::to_string(second_client_info.sin_port) << '\n';
 			delete[] ip;
+
+			is_second_client_connected = true;
 		}
-		
 	}
 
 
 	void Server::Start()
 	{
-		//FirstClientHandler();
-
-		//CreateThread(NULL, NULL, (LPTHREAD_START_ROUTINE)ClientHandler, (LPVOID)(i), NULL, NULL);
-
-		while (true)
+		while (is_first_client_connected == false || is_second_client_connected == false)
 		{
 			ClientsHandler();
 		}
-		//SecondClientHandler();
 
-		/*if (recvfrom(server_socket, reinterpret_cast<char*>(first_client_port), sizeof(int), 0, (sockaddr*)&server_info, &server_info_lenght) <= 0)
+		while (is_first_client_connected && is_second_client_connected)
 		{
-			perror("recvfrom first client port");
-			return;
-		}*/
+			//ProcessMessage();
+		}
 	}
 
 
