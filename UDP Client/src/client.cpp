@@ -10,7 +10,8 @@ namespace UDPChat
 		wsa{ 0 },
 		client_socket(INVALID_SOCKET),
 		client_info{ 0 },
-		client_info_lenght(sizeof(client_info)) {}
+		client_info_lenght(sizeof(client_info)),
+		is_connected(false) {}
 
 
 	bool Client::Connect(std::string ip, int port)
@@ -46,21 +47,7 @@ namespace UDPChat
 
 	void Client::SendInfo()
 	{
-		/*struct sockaddr_in address = { 0 };
-		int addressLength = sizeof(address);
-		std::string ip;
-		int port;
-
-		int result = getpeername(client_socket, (struct sockaddr*)&address, &addressLength);
-		std::cout << "Address length is " << addressLength << "     Return is " << result << std::endl;
-
-		sockaddr_storage
-
-		ip = getnameinfo(address.sin_addr);
-		port = ntohs(address.sin_port);*/
-
-
-		if (sendto(client_socket, inet_ntoa(client_info.sin_addr), 10, 0, (sockaddr*)&client_info, client_info_lenght) <= 0)
+		if (sendto(client_socket, inet_ntoa(client_info.sin_addr), INET_ADDRSTRLEN, 0, (sockaddr*)&client_info, client_info_lenght) <= 0)
 		{
 			perror("sendto first client ip");
 			return;
@@ -74,18 +61,22 @@ namespace UDPChat
 			return;
 		}
 
-		/*if (sendto(client_socket, reinterpret_cast<char*>(client_info.sin_port), sizeof(int), 0, (sockaddr*)&client_info, client_info_lenght) <= 0)
-		{
-			perror("sendto first client port");
-			return;
-		}*/
+		is_connected = true;
+	}
+
+	void Client::SendMSG()
+	{
+		//TODO: send message
 	}
 
 	void Client::Run()
 	{
-		//std::cout << "Enter a message: ";
-		
 		SendInfo();
+
+		while (is_connected)
+		{
+			SendMSG();
+		}
 	}
 
 

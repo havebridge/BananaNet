@@ -17,9 +17,11 @@ namespace UDPChat
 		int client_info_lenght;
 		char* message;
 		int message_size;
+		bool is_connected;
 
 	private:
 		void SendInfo();
+		void SendMSG();
 
 	public:
 		explicit Client();
