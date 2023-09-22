@@ -95,7 +95,6 @@ namespace UDPChat
 			delete[] ip;
 
 			is_first_client_connected = true;
-			return;
 		}
 		else
 		{
@@ -134,6 +133,30 @@ namespace UDPChat
 	}
 
 
+	void Server::ProcessMessage()
+	{
+		message_size = 0;
+
+		if (recvfrom(server_socket, (char*)&message_size, sizeof(int), 0, (sockaddr*)&server_info, &server_info_lenght) <= 0)
+		{
+			perror("recvfrom message size");
+			return;
+		}
+
+		message = new char[message_size + 1];
+		message[message_size] = '\0';
+
+		if (recvfrom(server_socket, message, message_size, 0, (sockaddr*)&server_info, &server_info_lenght) <= 0)
+		{
+			perror("recvfrom message");
+			return;
+		}
+
+		std::cout << "message size recv: " << message_size;
+		std::cout << "\nmessage recv: " << message;
+		std::cout << '\n';
+	}
+
 	void Server::Start()
 	{
 		while (is_first_client_connected == false || is_second_client_connected == false)
@@ -143,7 +166,7 @@ namespace UDPChat
 
 		while (is_first_client_connected && is_second_client_connected)
 		{
-			//ProcessMessage();
+			ProcessMessage();
 		}
 	}
 
