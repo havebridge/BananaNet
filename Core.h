@@ -13,3 +13,14 @@
 
 #define DEBUG 1
 #define RELEASE 0
+
+namespace Instance
+{
+	enum class type : uint8_t
+	{
+		first_client_handler = 0,
+		second_client_handler
+	};
+
+	inline type client_handler;
+}
