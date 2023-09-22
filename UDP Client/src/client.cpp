@@ -66,7 +66,50 @@ namespace UDPChat
 
 	void Client::SendMSG()
 	{
-		//TODO: send message
+		std::cout << "Send message: ";
+		std::getline(std::cin, send_message);
+
+		send_message_size = send_message.size();
+
+		if (sendto(client_socket, (char*)&send_message_size, sizeof(int), 0, (const sockaddr*)&client_info, client_info_lenght) <= 0)
+		{
+			perror("sendto message size");
+			return;
+		}
+
+		if (sendto(client_socket, send_message.c_str(), send_message_size, 0, (const sockaddr*)&client_info, client_info_lenght) <= 0)
+		{
+			perror("sendto message");
+			return;
+		}
+
+		std::cout << "message size: " << send_message_size;
+		std::cout << "\nmessage:" << send_message.data();
+		std::cout << '\n';
+	}
+
+	void Client::RecvMSG()
+	{
+		recv_message_size = 0;
+
+		if (recvfrom(client_socket, (char*)&recv_message_size, sizeof(int), 0, (sockaddr*)&client_info, &client_info_lenght) <= 0)
+		{
+			perror("recvfrom message size");
+			return;
+		}
+
+		recv_message = new char[recv_message_size + 1];
+		recv_message[recv_message_size] = '\0';
+
+		if (recvfrom(client_socket, recv_message, recv_message_size, 0, (sockaddr*)&client_info, &client_info_lenght) <= 0)
+		{
+			perror("recvfrom message");
+			return;
+		}
+
+		std::cout << "message size recv: " << recv_message_size;
+		std::cout << "\nmessage recv: " << recv_message;
+		std::cout << '\n';
 	}
 
 	void Client::Run()
@@ -75,7 +118,23 @@ namespace UDPChat
 
 		while (is_connected)
 		{
-			SendMSG();
+			switch (Instance::client_handler)
+			{
+			case Instance::type::first_client_handler:
+			{
+				std::cout << "First client\n";
+			} break;
+
+			case Instance::type::second_client_handler:
+			{
+				std::cout << "Second client\n";
+			} break;
+
+			default:
+			{
+				std::cout << "Default\n";
+			} break;
+			}
 		}
 	}
 
