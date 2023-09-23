@@ -12,7 +12,7 @@ int main(int argc, char** argv)
 		server.Start();
 	}
 
-
+	server.Stop();
 
 	return 0;
 }

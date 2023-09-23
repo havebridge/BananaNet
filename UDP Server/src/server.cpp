@@ -95,6 +95,7 @@ namespace UDPChat
 			delete[] ip;
 
 			is_first_client_connected = true;
+			//Instance::client_handler = Instance::type::first_client_handler;
 		}
 		else
 		{
@@ -129,6 +130,7 @@ namespace UDPChat
 			delete[] ip;
 
 			is_second_client_connected = true;
+			//Instance::client_handler = Instance::type::second_client_handler;
 		}
 	}
 
@@ -155,6 +157,8 @@ namespace UDPChat
 		std::cout << "message size recv: " << message_size;
 		std::cout << "\nmessage recv: " << message;
 		std::cout << '\n';
+
+		delete[] message;
 	}
 
 	void Server::Start()
@@ -170,6 +174,11 @@ namespace UDPChat
 		}
 	}
 
+
+	void Server::Stop()
+	{
+		closesocket(server_socket);
+	}
 
 	Server::~Server()
 	{

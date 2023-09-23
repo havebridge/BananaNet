@@ -118,23 +118,8 @@ namespace UDPChat
 
 		while (is_connected)
 		{
-			switch (Instance::client_handler)
-			{
-			case Instance::type::first_client_handler:
-			{
-				std::cout << "First client\n";
-			} break;
-
-			case Instance::type::second_client_handler:
-			{
-				std::cout << "Second client\n";
-			} break;
-
-			default:
-			{
-				std::cout << "Default\n";
-			} break;
-			}
+			SendMSG();
+			//RecvMSG();
 		}
 	}
 

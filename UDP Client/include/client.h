@@ -24,6 +24,8 @@ namespace UDPChat
 
 		bool is_connected;
 
+		Instance::type client_type;
+		
 	private:
 		void SendInfo();
 		void SendMSG();
