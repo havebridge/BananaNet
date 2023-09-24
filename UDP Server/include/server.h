@@ -7,6 +7,12 @@
 #include "../../Core.h"
 
 
+#pragma data_seg(".SHARED")
+Instance::type client_handler = {};
+#pragma data_seg()
+
+#pragma comment(linker, "/section:.SHARED,RWS")
+
 #define	MAX_NUM_CLIENTS 2
 
 namespace UDPChat
