@@ -62,6 +62,15 @@ namespace UDPChat
 		}
 
 		is_connected = true;
+
+		/*if (Instance::count == 0)
+		{
+			client_type = Instance::type::first_client_handler;
+		}
+		else
+		{
+			client_type = Instance::type::second_client_handler;
+		}*/
 	}
 
 	void Client::SendMSG()
@@ -90,6 +99,8 @@ namespace UDPChat
 
 	void Client::RecvMSG()
 	{
+		std::cout << "RecvMSG\n";
+
 		recv_message_size = 0;
 
 		if (recvfrom(client_socket, (char*)&recv_message_size, sizeof(int), 0, (sockaddr*)&client_info, &client_info_lenght) <= 0)
@@ -112,15 +123,38 @@ namespace UDPChat
 		std::cout << '\n';
 	}
 
+
 	void Client::Run()
 	{
 		SendInfo();
 
+		client_type = client_handler;
+
+		std::thread recv_thread = std::thread(&Client::RecvMSG, this);
+
+		switch (client_type)
+		{
+		case Instance::type::first_client_handler:
+		{
+			std::cout << "first\n";
+		} break;
+
+		case Instance::type::second_client_handler:
+		{
+			std::cout << "second\n";
+		} break;
+
+		default:
+			std::cout << "default\n";
+			break;
+		}
+
 		while (is_connected)
 		{
 			SendMSG();
-			//RecvMSG();
 		}
+
+		recv_thread.join();
 	}
 
 
