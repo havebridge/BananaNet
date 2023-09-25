@@ -62,15 +62,6 @@ namespace UDPChat
 		}
 
 		is_connected = true;
-
-		/*if (Instance::count == 0)
-		{
-			client_type = Instance::type::first_client_handler;
-		}
-		else
-		{
-			client_type = Instance::type::second_client_handler;
-		}*/
 	}
 
 	void Client::SendMSG()
@@ -128,7 +119,7 @@ namespace UDPChat
 	{
 		SendInfo();
 
-		client_type = client_handler;
+		client_type = Instance::client_handler;
 
 		std::thread recv_thread = std::thread(&Client::RecvMSG, this);
 

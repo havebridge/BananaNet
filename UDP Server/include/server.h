@@ -3,15 +3,10 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <fstream>
 
 #include "../../Core.h"
 
-
-#pragma data_seg(".SHARED")
-Instance::type client_handler = {};
-#pragma data_seg()
-
-#pragma comment(linker, "/section:.SHARED,RWS")
 
 #define	MAX_NUM_CLIENTS 2
 
@@ -41,9 +36,12 @@ namespace UDPChat
 		bool is_first_client_connected;
 		bool is_second_client_connected;
 
+		std::ofstream client_handler_file;
+
 	private:
 		void ClientsHandler();
 		void ProcessMessage();
+		bool ProcessFile(Instance::type client_handler);
 
 	public:
 		explicit Server(std::string ip, int port);

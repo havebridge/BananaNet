@@ -60,6 +60,24 @@ namespace UDPChat
 		return true;
 	}
 
+	bool Server::ProcessFile(Instance::type client_handler)
+	{
+		client_handler_file.open("file_handler.txt");
+
+		if (client_handler_file.is_open())
+		{
+			client_handler_file << static_cast<int>(client_handler);
+
+			client_handler_file.close();
+			return true;
+		}
+		else
+		{
+			std::cerr << "Unable to open the file\n";
+			return false;
+		}
+	}
+
 	void Server::ClientsHandler()
 	{
 		if (is_first_client_connected == false)
@@ -95,7 +113,10 @@ namespace UDPChat
 			delete[] ip;
 
 			is_first_client_connected = true;
-			//Instance::client_handler = Instance::type::first_client_handler;
+			Instance::client_handler = Instance::type::first_client_handler;
+			
+			ProcessFile(Instance::client_handler);
+			//Instance::count++;
 		}
 		else
 		{
@@ -130,7 +151,8 @@ namespace UDPChat
 			delete[] ip;
 
 			is_second_client_connected = true;
-			//Instance::client_handler = Instance::type::second_client_handler;
+			Instance::client_handler = Instance::type::second_client_handler;
+			ProcessFile(Instance::client_handler);
 		}
 	}
 

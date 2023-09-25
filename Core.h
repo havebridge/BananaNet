@@ -21,4 +21,6 @@ namespace Instance
 		first_client_handler = 0,
 		second_client_handler
 	};
+
+	inline type client_handler;
 }

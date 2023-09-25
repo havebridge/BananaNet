@@ -3,7 +3,11 @@
 #include <iostream>
 #include <string>
 
+#include <thread>
+
 #include "../../Core.h"
+
+//#include "../../UDP Server/include/server.h"
 
 
 namespace UDPChat
