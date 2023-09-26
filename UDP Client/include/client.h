@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <string>
+#include <fstream>
 
 #include <thread>
 
@@ -29,9 +30,11 @@ namespace UDPChat
 		bool is_connected;
 
 		Instance::type client_type;
-		
+		std::ifstream client_handler_file;
+
 	private:
-		void SendInfo();
+		bool SendInfo();
+		bool ProcessFile(const char* file_name);
 		void SendMSG();
 		void RecvMSG();
 

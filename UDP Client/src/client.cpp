@@ -45,12 +45,35 @@ namespace UDPChat
 		return true;
 	}
 
-	void Client::SendInfo()
+	bool Client::ProcessFile(const char* file_name)
+	{
+		client_handler_file.open(file_name);
+
+		if (client_handler_file.is_open())
+		{
+			int res;
+			client_handler_file >> res;
+
+			client_type = static_cast<Instance::type>(res);
+
+			std::cout << res;
+
+			client_handler_file.close();
+			return true;
+		}
+		else
+		{
+			std::cerr << "Unable to open the file\n";
+			return false;
+		}
+	}
+
+	bool Client::SendInfo()
 	{
 		if (sendto(client_socket, inet_ntoa(client_info.sin_addr), INET_ADDRSTRLEN, 0, (sockaddr*)&client_info, client_info_lenght) <= 0)
 		{
 			perror("sendto first client ip");
-			return;
+			return false;
 		}
 
 		int port = client_info.sin_port;
@@ -58,10 +81,14 @@ namespace UDPChat
 		if (sendto(client_socket, (char*)&port, sizeof(int), 0, (sockaddr*)&client_info, client_info_lenght) <= 0)
 		{
 			perror("sendto first client port");
-			return;
+			return false;
 		}
 
 		is_connected = true;
+
+		ProcessFile("C:/Users/meylor/source/repos/hnet/handler/file_handler.txt");
+
+		return is_connected;
 	}
 
 	void Client::SendMSG()
@@ -83,15 +110,22 @@ namespace UDPChat
 			return;
 		}
 
+		int client = static_cast<int>(client_type);
+
+		if (sendto(client_socket, (char*)&client, sizeof(int), 0, (const sockaddr*)&client_info, client_info_lenght) <= 0)
+		{
+			perror("sendto message");
+			return;
+		}
+
 		std::cout << "message size: " << send_message_size;
 		std::cout << "\nmessage:" << send_message.data();
+		std::cout << "\nclient type:" << client;
 		std::cout << '\n';
 	}
 
 	void Client::RecvMSG()
 	{
-		std::cout << "RecvMSG\n";
-
 		recv_message_size = 0;
 
 		if (recvfrom(client_socket, (char*)&recv_message_size, sizeof(int), 0, (sockaddr*)&client_info, &client_info_lenght) <= 0)
@@ -109,19 +143,26 @@ namespace UDPChat
 			return;
 		}
 
+		int client = 0;
+
+		if (recvfrom(client_socket, (char*)&client, sizeof(int), 0, (sockaddr*)&client_info, &client_info_lenght) <= 0)
+		{
+			perror("recvfrom message");
+			return;
+		}
+
 		std::cout << "message size recv: " << recv_message_size;
 		std::cout << "\nmessage recv: " << recv_message;
+		std::cout << "\nclient recv: " << client;
 		std::cout << '\n';
+
+		delete[] recv_message;
 	}
 
 
 	void Client::Run()
 	{
 		SendInfo();
-
-		client_type = Instance::client_handler;
-
-		std::thread recv_thread = std::thread(&Client::RecvMSG, this);
 
 		switch (client_type)
 		{
@@ -136,9 +177,11 @@ namespace UDPChat
 		} break;
 
 		default:
-			std::cout << "default\n";
+			std::cout << "dafault\n";
 			break;
 		}
+
+		std::thread recv_thread = std::thread(&Client::RecvMSG, this);
 
 		while (is_connected)
 		{
