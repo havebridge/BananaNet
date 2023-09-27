@@ -186,33 +186,62 @@ namespace UDPChat
 
 		std::cout << "message size recv: " << message_size;
 		std::cout << "\nmessage recv: " << message;
-		std::cout << "\client handler recv: " << client;
+		std::cout << "\nclient handler recv: " << client;
 		std::cout << '\n';
 
-
-
-		if (sendto(server_socket, (char*)&message_size, sizeof(int), 0, (sockaddr*)&first_client_info, first_client_info_lenght) <= 0)
+		switch (static_cast<Instance::type>(client))
 		{
-			perror("recvfrom message size");
-			return;
+		case Instance::type::first_client_handler:
+		{
+			if (sendto(server_socket, (char*)&message_size, sizeof(int), 0, (sockaddr*)&second_client_info, second_client_info_lenght) <= 0)
+			{
+				perror("sendto second message size");
+				return;
+			}
+
+			if (sendto(server_socket, message, message_size, 0, (sockaddr*)&second_client_info, second_client_info_lenght) <= 0)
+			{
+				perror("sendto second message");
+				return;
+			}
+
+			if (sendto(server_socket, (char*)&client, sizeof(int), 0, (sockaddr*)&second_client_info, second_client_info_lenght) <= 0)
+			{
+				perror("sendto second message");
+				return;
+			}
+		} break;
+
+		case Instance::type::second_client_handler:
+		{
+			if (sendto(server_socket, (char*)&message_size, sizeof(int), 0, (sockaddr*)&first_client_info, first_client_info_lenght) <= 0)
+			{
+				perror("sendto first message size");
+				return;
+			}
+
+			if (sendto(server_socket, message, message_size, 0, (sockaddr*)&first_client_info, first_client_info_lenght) <= 0)
+			{
+				perror("sendto first message");
+				return;
+			}
+
+			if (sendto(server_socket, (char*)&client, sizeof(int), 0, (sockaddr*)&first_client_info, first_client_info_lenght) <= 0)
+			{
+				perror("sendto first message");
+				return;
+			}
+		} break;
+
+		default:
+			std::cout << "Default\n";
+			break;
 		}
 
-		if (sendto(server_socket, message, message_size, 0, (sockaddr*)&first_client_info, first_client_info_lenght) <= 0)
-		{
-			perror("recvfrom message");
-			return;
-		}
-
-		if (sendto(server_socket, (char*)&client, sizeof(int), 0, (sockaddr*)&first_client_info, first_client_info_lenght) <= 0)
-		{
-			perror("recvfrom message");
-			return;
-		}
-
-		std::cout << "message size send: " << message_size;
-		std::cout << "\nmessage send: " << message;
-		std::cout << "\client handler send: " << client;
-		std::cout << '\n';
+		//std::cout << "message size send: " << message_size;
+		//std::cout << "\nmessage send: " << message;
+		//std::cout << "\client handler send: " << client;
+		//std::cout << '\n';
 
 		delete[] message;
 	}
