@@ -193,19 +193,18 @@ namespace UDPChat
 		{
 		case Instance::type::first_client_handler:
 		{
-			if (sendto(server_socket, (char*)&message_size, sizeof(int), 0, (sockaddr*)&second_client_info, second_client_info_lenght) <= 0)
+			std::cout << "First client handler\n";
+
+			std::string first_client_data(message);
+			int first_client_data_size = first_client_data.size();
+
+			if (sendto(server_socket, (char*)&first_client_data_size, sizeof(int), 0, (sockaddr*)&second_client_info, second_client_info_lenght) <= 0)
 			{
 				perror("sendto second message size");
 				return;
 			}
 
-			if (sendto(server_socket, message, message_size, 0, (sockaddr*)&second_client_info, second_client_info_lenght) <= 0)
-			{
-				perror("sendto second message");
-				return;
-			}
-
-			if (sendto(server_socket, (char*)&client, sizeof(int), 0, (sockaddr*)&second_client_info, second_client_info_lenght) <= 0)
+			if (sendto(server_socket, first_client_data.c_str(), first_client_data_size, 0, (sockaddr*)&second_client_info, second_client_info_lenght) <= 0)
 			{
 				perror("sendto second message");
 				return;
@@ -214,19 +213,18 @@ namespace UDPChat
 
 		case Instance::type::second_client_handler:
 		{
-			if (sendto(server_socket, (char*)&message_size, sizeof(int), 0, (sockaddr*)&first_client_info, first_client_info_lenght) <= 0)
+			std::cout << "Second client handler\n";
+
+			std::string second_client_data(message);
+			int second_client_data_size= second_client_data.size();
+
+			if (sendto(server_socket, (char*)&second_client_data_size, sizeof(int), 0, (sockaddr*)&first_client_info, first_client_info_lenght) <= 0)
 			{
 				perror("sendto first message size");
 				return;
 			}
 
-			if (sendto(server_socket, message, message_size, 0, (sockaddr*)&first_client_info, first_client_info_lenght) <= 0)
-			{
-				perror("sendto first message");
-				return;
-			}
-
-			if (sendto(server_socket, (char*)&client, sizeof(int), 0, (sockaddr*)&first_client_info, first_client_info_lenght) <= 0)
+			if (sendto(server_socket, second_client_data.c_str(), second_client_data_size, 0, (sockaddr*)&first_client_info, first_client_info_lenght) <= 0)
 			{
 				perror("sendto first message");
 				return;
@@ -238,10 +236,9 @@ namespace UDPChat
 			break;
 		}
 
-		//std::cout << "message size send: " << message_size;
-		//std::cout << "\nmessage send: " << message;
-		//std::cout << "\client handler send: " << client;
-		//std::cout << '\n';
+		std::cout << "message size send: " << message_size;
+		std::cout << "\nmessage send: " << message;
+		std::cout << '\n';
 
 		delete[] message;
 	}

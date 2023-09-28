@@ -143,17 +143,8 @@ namespace UDPChat
 			return;
 		}
 
-		int client = 0;
-
-		if (recvfrom(client_socket, (char*)&client, sizeof(int), 0, (sockaddr*)&client_info, &client_info_lenght) <= 0)
-		{
-			perror("recvfrom message");
-			return;
-		}
-
 		std::cout << "message size recv: " << recv_message_size;
 		std::cout << "\nmessage recv: " << recv_message;
-		std::cout << "\nclient recv: " << client;
 		std::cout << '\n';
 
 		delete[] recv_message;
@@ -187,7 +178,7 @@ namespace UDPChat
 		{
 			SendMSG();
 		}
-
+		
 		recv_thread.join();
 	}
 
