@@ -5,6 +5,8 @@
 #include <fstream>
 
 #include <thread>
+#include <mutex>
+#include <condition_variable>
 
 #include "../../Core.h"
 
@@ -26,9 +28,13 @@ namespace UDPChat
 		std::string send_message;
 		int send_message_size;
 
+		bool is_sended;
+
 		char* recv_message;
 		int recv_message_size;
 		std::thread recv_thread;
+		std::mutex recv_mutex;
+		std::condition_variable cv;
 
 		bool is_connected;
 

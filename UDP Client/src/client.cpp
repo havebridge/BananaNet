@@ -17,32 +17,32 @@ namespace UDPChat
 
 	bool Client::Connect(std::string ip, int port)
 	{
-		if ((WSAStartup(MAKEWORD(2, 2), &wsa)) == -1)
+		if ((WSAStartup(MAKEWORD(2, 2), &wsa)) != 0)
 		{
 			std::cout << WSAGetLastError() << '\n';
 			perror("WSAStartup");
 			return false;
 		}
 
-		if ((client_socket = socket(PF_INET, SOCK_DGRAM, 0)) == SOCKET_ERROR)
+		if ((client_socket = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP)) == SOCKET_ERROR)
 		{
 			std::cout << WSAGetLastError() << '\n';
 			perror("socket");
 			return false;
 		}
 
-		char yes = '1';
+		/*char yes = '1';
 
 		if ((setsockopt(client_socket, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int)) == -1))
 		{
 			std::cout << WSAGetLastError() << '\n';
 			perror("setsockport");
 			return false;
-		}
+		}*/
 
 		client_info.sin_family = AF_INET;
 		client_info.sin_port = htons(port);
-		client_info.sin_addr.s_addr = inet_addr(ip.c_str());
+		client_info.sin_addr.S_un.S_addr = inet_addr(ip.c_str());
 
 		ZeroMemory(client_info.sin_zero, 8);
 
@@ -128,6 +128,8 @@ namespace UDPChat
 			return;
 		}
 
+		cv.notify_one();
+
 		std::cout << "message size send: " << send_message_size;
 		std::cout << "\nmessage send:" << send_message.data();
 		std::cout << "\nclient type send:" << client;
@@ -136,30 +138,40 @@ namespace UDPChat
 
 	void Client::RecvMSG()
 	{
-		std::cout << "RecvMSG\n";
-
-		if (recvfrom(client_socket, (char*)&recv_message_size, sizeof(int), 0, (sockaddr*)&client_info, &client_info_lenght) <= 0)
+		while (true) 
 		{
-			std::cout << WSAGetLastError() << '\n';
-			perror("recvfrom message size");
-			return;
+			std::unique_lock<std::mutex> recv_lock(recv_mutex);
+
+			cv.wait(recv_lock, [this]  {
+				return !is_sended;
+				});
+
+			std::cout << "RecvMSG\n";
+
+			if (recvfrom(client_socket, (char*)&recv_message_size, sizeof(int), 0, (sockaddr*)&client_info, &client_info_lenght) <= 0)
+			{
+				std::cout << WSAGetLastError() << '\n';
+				perror("recvfrom message size");
+				return;
+			}
+
+			recv_message = new char[recv_message_size + 1];
+			recv_message[recv_message_size] = '\0';
+
+			if (recvfrom(client_socket, recv_message, recv_message_size, 0, (sockaddr*)&client_info, &client_info_lenght) <= 0)
+			{
+				std::cout << WSAGetLastError() << '\n';
+				perror("recvfrom message");
+				return;
+			}
+
+			std::cout << "RECV MESSAGE\n";
+			std::cout << "message size recv: " << recv_message_size;
+			std::cout << "\nmessage recv: " << recv_message;
+			std::cout << '\n';
+
+			delete[] recv_message;
 		}
-
-		recv_message = new char[recv_message_size + 1];
-		recv_message[recv_message_size] = '\0';
-
-		if (recvfrom(client_socket, recv_message, recv_message_size, 0, (sockaddr*)&client_info, &client_info_lenght) <= 0)
-		{
-			std::cout << WSAGetLastError() << '\n';
-			perror("recvfrom message");
-			return;
-		}
-
-		std::cout << "message size recv: " << recv_message_size;
-		std::cout << "\nmessage recv: " << recv_message;
-		std::cout << '\n';
-
-		delete[] recv_message;
 	}
 
 
