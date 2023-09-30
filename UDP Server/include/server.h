@@ -24,8 +24,11 @@ namespace UDPChat
 		struct sockaddr_in server_info;
 		int server_info_lenght;
 
-		char* message;
-		int message_size;
+		char* recieved_message;
+		int recieved_message_size;
+
+		std::string send_message;
+		int send_message_size;
 
 		struct sockaddr_in first_client_info;
 		int first_client_info_lenght;

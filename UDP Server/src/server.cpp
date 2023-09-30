@@ -9,11 +9,12 @@ namespace UDPChat
 		:
 		wsa{ 0 },
 		server_socket(INVALID_SOCKET),
-		ip(std::move(ip)),
+		ip(ip),
 		port(port),
 		server_info{ 0 },
 		server_info_lenght(sizeof(server_info)),
-		message_size(0),
+		recieved_message(0),
+		send_message_size(0),
 		first_client_info{ 0 },
 		second_client_info{ 0 },
 		is_first_client_connected(false),
@@ -24,13 +25,23 @@ namespace UDPChat
 	{
 		if ((WSAStartup(MAKEWORD(2, 2), &wsa)) == -1)
 		{
+			std::cout << WSAGetLastError() << '\n';
 			perror("WSAStartup");
 			return false;
 		}
 
 		if ((server_socket = socket(PF_INET, SOCK_DGRAM, 0)) == SOCKET_ERROR)
 		{
+			std::cout << WSAGetLastError() << '\n';
 			perror("socket");
+			return false;
+		}
+
+		unsigned long mode = 0;
+		if (ioctlsocket(server_socket, FIONBIO, &mode) == -1)
+		{
+			std::cout << WSAGetLastError() << '\n';
+			perror("ioctlsocket");
 			return false;
 		}
 
@@ -38,6 +49,7 @@ namespace UDPChat
 
 		if ((setsockopt(server_socket, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int)) == -1))
 		{
+			std::cout << WSAGetLastError() << '\n';
 			perror("setsockport");
 			return false;
 		}
@@ -103,7 +115,7 @@ namespace UDPChat
 				return;
 			}
 
-			first_client_info.sin_port = port;
+			first_client_info.sin_port = htons(port);
 			first_client_info.sin_family = AF_INET;
 
 			ZeroMemory(first_client_info.sin_zero, 8);
@@ -140,7 +152,7 @@ namespace UDPChat
 				return;
 			}
 
-			second_client_info.sin_port = port;
+			second_client_info.sin_port = htons(port);
 			second_client_info.sin_family = AF_INET;
 
 			ZeroMemory(second_client_info.sin_zero, 8);
@@ -159,19 +171,19 @@ namespace UDPChat
 
 	void Server::ProcessMessage()
 	{
-		message_size = 0;
-
-		if (recvfrom(server_socket, (char*)&message_size, sizeof(int), 0, (sockaddr*)&server_info, &server_info_lenght) <= 0)
+		if (recvfrom(server_socket, (char*)&recieved_message_size, sizeof(int), 0, (sockaddr*)&server_info, &server_info_lenght) <= 0)
 		{
+			std::cout << WSAGetLastError() << '\n';
 			perror("recvfrom message size");
 			return;
 		}
 
-		message = new char[message_size + 1];
-		message[message_size] = '\0';
+		recieved_message = new char[recieved_message_size + 1];
+		recieved_message[recieved_message_size] = '\0';
 
-		if (recvfrom(server_socket, message, message_size, 0, (sockaddr*)&server_info, &server_info_lenght) <= 0)
+		if (recvfrom(server_socket, recieved_message, recieved_message_size, 0, (sockaddr*)&server_info, &server_info_lenght) <= 0)
 		{
+			std::cout << WSAGetLastError() << '\n';
 			perror("recvfrom message");
 			return;
 		}
@@ -180,14 +192,18 @@ namespace UDPChat
 
 		if (recvfrom(server_socket, (char*)&client, sizeof(int), 0, (sockaddr*)&server_info, &server_info_lenght) <= 0)
 		{
+			std::cout << WSAGetLastError() << '\n';
 			perror("recvfrom message");
 			return;
 		}
 
-		std::cout << "message size recv: " << message_size;
-		std::cout << "\nmessage recv: " << message;
+		std::cout << "message size recv: " << recieved_message_size;
+		std::cout << "\nmessage recv: " << recieved_message;
 		std::cout << "\nclient handler recv: " << client;
 		std::cout << '\n';
+
+		send_message.assign(recieved_message, recieved_message_size);
+		send_message_size = send_message.size();
 
 		switch (static_cast<Instance::type>(client))
 		{
@@ -195,18 +211,17 @@ namespace UDPChat
 		{
 			std::cout << "First client handler\n";
 
-			std::string first_client_data(message);
-			int first_client_data_size = first_client_data.size();
-
-			if (sendto(server_socket, (char*)&first_client_data_size, sizeof(int), 0, (sockaddr*)&second_client_info, second_client_info_lenght) <= 0)
+			if (sendto(server_socket, (char*)&send_message_size, sizeof(int), 0, (const sockaddr*)&second_client_info, second_client_info_lenght) <= 0)
 			{
-				perror("sendto second message size");
+				std::cout << WSAGetLastError() << '\n';
+				perror("sendto second client message size");
 				return;
 			}
 
-			if (sendto(server_socket, first_client_data.c_str(), first_client_data_size, 0, (sockaddr*)&second_client_info, second_client_info_lenght) <= 0)
+			if (sendto(server_socket, send_message.c_str(), send_message_size, 0, (const sockaddr*)&second_client_info, second_client_info_lenght) <= 0)
 			{
-				perror("sendto second message");
+				std::cout << WSAGetLastError() << '\n';
+				perror("sendto second client message");
 				return;
 			}
 		} break;
@@ -215,18 +230,17 @@ namespace UDPChat
 		{
 			std::cout << "Second client handler\n";
 
-			std::string second_client_data(message);
-			int second_client_data_size= second_client_data.size();
-
-			if (sendto(server_socket, (char*)&second_client_data_size, sizeof(int), 0, (sockaddr*)&first_client_info, first_client_info_lenght) <= 0)
+			if (sendto(server_socket, (char*)&send_message_size, sizeof(int), 0, (const sockaddr*)&first_client_info, first_client_info_lenght) <= 0)
 			{
-				perror("sendto first message size");
+				std::cout << WSAGetLastError() << '\n';
+				perror("sendto first client message size");
 				return;
 			}
 
-			if (sendto(server_socket, second_client_data.c_str(), second_client_data_size, 0, (sockaddr*)&first_client_info, first_client_info_lenght) <= 0)
+			if (sendto(server_socket, send_message.c_str(), send_message_size, 0, (const sockaddr*)&first_client_info, first_client_info_lenght) <= 0)
 			{
-				perror("sendto first message");
+				std::cout << WSAGetLastError() << '\n';
+				perror("sendto first client message");
 				return;
 			}
 		} break;
@@ -236,11 +250,11 @@ namespace UDPChat
 			break;
 		}
 
-		std::cout << "message size send: " << message_size;
-		std::cout << "\nmessage send: " << message;
+		std::cout << "message size send: " << recieved_message_size;
+		std::cout << "\nmessage send: " << recieved_message;
 		std::cout << '\n';
 
-		delete[] message;
+		delete[] recieved_message;
 	}
 
 	void Server::Start()
