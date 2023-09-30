@@ -17,7 +17,9 @@ namespace UDPChat
 	{
 	private:
 		WSAData wsa;
+
 		SOCKET client_socket;
+
 		struct sockaddr_in client_info;
 		int client_info_lenght;
 
@@ -26,6 +28,7 @@ namespace UDPChat
 
 		char* recv_message;
 		int recv_message_size;
+		std::thread recv_thread;
 
 		bool is_connected;
 

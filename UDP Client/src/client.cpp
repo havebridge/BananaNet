@@ -11,19 +11,22 @@ namespace UDPChat
 		client_socket(INVALID_SOCKET),
 		client_info{ 0 },
 		client_info_lenght(sizeof(client_info)),
-		is_connected(false) {}
+		is_connected(false),
+		recv_message_size(0) {}
 
 
 	bool Client::Connect(std::string ip, int port)
 	{
 		if ((WSAStartup(MAKEWORD(2, 2), &wsa)) == -1)
 		{
+			std::cout << WSAGetLastError() << '\n';
 			perror("WSAStartup");
 			return false;
 		}
 
 		if ((client_socket = socket(PF_INET, SOCK_DGRAM, 0)) == SOCKET_ERROR)
 		{
+			std::cout << WSAGetLastError() << '\n';
 			perror("socket");
 			return false;
 		}
@@ -32,6 +35,7 @@ namespace UDPChat
 
 		if ((setsockopt(client_socket, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int)) == -1))
 		{
+			std::cout << WSAGetLastError() << '\n';
 			perror("setsockport");
 			return false;
 		}
@@ -70,16 +74,18 @@ namespace UDPChat
 
 	bool Client::SendInfo()
 	{
-		if (sendto(client_socket, inet_ntoa(client_info.sin_addr), INET_ADDRSTRLEN, 0, (sockaddr*)&client_info, client_info_lenght) <= 0)
+		if (sendto(client_socket, inet_ntoa(client_info.sin_addr), INET_ADDRSTRLEN, 0, (const sockaddr*)&client_info, client_info_lenght) <= 0)
 		{
+			std::cout << WSAGetLastError() << '\n';
 			perror("sendto first client ip");
 			return false;
 		}
 
 		int port = client_info.sin_port;
 
-		if (sendto(client_socket, (char*)&port, sizeof(int), 0, (sockaddr*)&client_info, client_info_lenght) <= 0)
+		if (sendto(client_socket, (char*)&port, sizeof(int), 0, (const sockaddr*)&client_info, client_info_lenght) <= 0)
 		{
+			std::cout << WSAGetLastError() << '\n';
 			perror("sendto first client port");
 			return false;
 		}
@@ -93,6 +99,7 @@ namespace UDPChat
 
 	void Client::SendMSG()
 	{
+		std::cout << "SendMSG\n";
 		std::cout << "Send message: ";
 		std::getline(std::cin, send_message);
 
@@ -100,12 +107,14 @@ namespace UDPChat
 
 		if (sendto(client_socket, (char*)&send_message_size, sizeof(int), 0, (const sockaddr*)&client_info, client_info_lenght) <= 0)
 		{
+			std::cout << WSAGetLastError() << '\n';
 			perror("sendto message size");
 			return;
 		}
 
 		if (sendto(client_socket, send_message.c_str(), send_message_size, 0, (const sockaddr*)&client_info, client_info_lenght) <= 0)
 		{
+			std::cout << WSAGetLastError() << '\n';
 			perror("sendto message");
 			return;
 		}
@@ -114,22 +123,24 @@ namespace UDPChat
 
 		if (sendto(client_socket, (char*)&client, sizeof(int), 0, (const sockaddr*)&client_info, client_info_lenght) <= 0)
 		{
+			std::cout << WSAGetLastError() << '\n';
 			perror("sendto message");
 			return;
 		}
 
-		std::cout << "message size: " << send_message_size;
-		std::cout << "\nmessage:" << send_message.data();
-		std::cout << "\nclient type:" << client;
+		std::cout << "message size send: " << send_message_size;
+		std::cout << "\nmessage send:" << send_message.data();
+		std::cout << "\nclient type send:" << client;
 		std::cout << '\n';
 	}
 
 	void Client::RecvMSG()
 	{
-		recv_message_size = 0;
+		std::cout << "RecvMSG\n";
 
 		if (recvfrom(client_socket, (char*)&recv_message_size, sizeof(int), 0, (sockaddr*)&client_info, &client_info_lenght) <= 0)
 		{
+			std::cout << WSAGetLastError() << '\n';
 			perror("recvfrom message size");
 			return;
 		}
@@ -139,6 +150,7 @@ namespace UDPChat
 
 		if (recvfrom(client_socket, recv_message, recv_message_size, 0, (sockaddr*)&client_info, &client_info_lenght) <= 0)
 		{
+			std::cout << WSAGetLastError() << '\n';
 			perror("recvfrom message");
 			return;
 		}
@@ -172,55 +184,17 @@ namespace UDPChat
 			break;
 		}
 
-		std::thread recv_thread = std::thread(&Client::RecvMSG, this);
+		recv_thread = (std::thread(&Client::RecvMSG, this));
 
 		while (is_connected)
 		{
 			SendMSG();
 		}
-		
-		recv_thread.join();
 	}
-
-
-	/*void Client::Send()
-	{
-		std::cout << "Enter a message: ";
-		std::getline(std::cin, message);
-	
-
-		if ((sendlength = sendto(clientsocket, message.c_str(), message.size(), 0, (struct sockaddr*) & info, infolength)) == 0)
-		{
-			perror("send");
-			return;
-		}
-	}
-
-	void Client::Recieve()
-	{
-		if ((recvlength = recvfrom(clientsocket, buffer, SIZE, 0, (struct sockaddr*) & info, &infolength)) == 0)
-		{
-			perror("recvfrom");
-			return;
-		}
-	}
-
-
-	void Client::Process()
-	{
-		std::cout << "Got the packet from:" << inet_ntoa(info.sin_addr) << ":" << htons(info.sin_port) << '\n';
-		std::cout << "Data:";
-
-		for (int i = 0; i != recvlength; ++i)
-		{
-			std::cout << buffer[i];
-		}
-		std::cout << '\n';
-	}*/
-
 
 	Client::~Client()
 	{
+		recv_thread.join();
 		WSACleanup();
 		closesocket(client_socket);
 	}
