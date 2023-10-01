@@ -31,14 +31,14 @@ namespace UDPChat
 			return false;
 		}
 
-		/*char yes = '1';
+		char yes = '1';
 
 		if ((setsockopt(client_socket, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int)) == -1))
 		{
 			std::cout << WSAGetLastError() << '\n';
 			perror("setsockport");
 			return false;
-		}*/
+		}
 
 		client_info.sin_family = AF_INET;
 		client_info.sin_port = htons(port);
