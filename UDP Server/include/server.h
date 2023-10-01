@@ -36,6 +36,8 @@ namespace UDPChat
 		struct sockaddr_in second_client_info;
 		int second_client_info_lenght;
 
+		struct sockaddr_in which;
+
 		bool is_first_client_connected;
 		bool is_second_client_connected;
 
