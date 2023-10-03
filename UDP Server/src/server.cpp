@@ -94,78 +94,112 @@ namespace UDPChat
 	{
 		if (is_first_client_connected == false)
 		{
-			char* ip = new char[INET_ADDRSTRLEN + 1];
-			ip[INET_ADDRSTRLEN] = '\0';
-
-			if (recvfrom(server_socket, ip, INET_ADDRSTRLEN, 0, (sockaddr*)&server_info, &server_info_lenght) <= 0)
+			if (recvfrom(server_socket, (char*)&is_first_client_connected, sizeof(bool), 0, (sockaddr*)&server_info, &server_info_lenght) <= 0)
 			{
 				std::cout << WSAGetLastError() << '\n';
-				perror("recvfrom first client ip");
+				perror("recvfrom first client is_cliet_stared");
 				return;
 			}
-
-			first_client_info.sin_addr.s_addr = reinterpret_cast<u_short>(ip);
-			inet_pton(AF_INET, ip, &(first_client_info.sin_addr));
-
-			int port = 0;
-
-			if (recvfrom(server_socket, (char*)&port, sizeof(int), 0, (sockaddr*)&server_info, &server_info_lenght) <= 0)
-			{
-				std::cout << WSAGetLastError() << '\n';
-				perror("recvfrom first client port");
-				return;
-			}
-
-			first_client_info.sin_port = htons(port);
-			first_client_info.sin_family = AF_INET;
-
-			ZeroMemory(first_client_info.sin_zero, 8);
-
-			std::cout << "First client is handled\n";
-			std::cout << "IP: " << inet_ntoa(first_client_info.sin_addr) << " PORT: " << std::to_string(first_client_info.sin_port) << '\n';
-			delete[] ip;
 
 			is_first_client_connected = true;
-			Instance::client_handler = Instance::type::first_client_handler;
-			ProcessFile(Instance::client_handler);
+
+			if (is_first_client_connected)
+			{
+				char* ip = new char[INET_ADDRSTRLEN + 1];
+				ip[INET_ADDRSTRLEN] = '\0';
+
+				if (recvfrom(server_socket, ip, INET_ADDRSTRLEN, 0, (sockaddr*)&server_info, &server_info_lenght) <= 0)
+				{
+					std::cout << WSAGetLastError() << '\n';
+					perror("recvfrom first client ip");
+					return;
+				}
+
+				first_client_info.sin_addr.s_addr = reinterpret_cast<u_short>(ip);
+				inet_pton(AF_INET, ip, &(first_client_info.sin_addr));
+
+				int port = 0;
+
+				if (recvfrom(server_socket, (char*)&port, sizeof(int), 0, (sockaddr*)&server_info, &server_info_lenght) <= 0)
+				{
+					std::cout << WSAGetLastError() << '\n';
+					perror("recvfrom first client port");
+					return;
+				}
+
+				first_client_info.sin_port = htons(port);
+				first_client_info.sin_family = AF_INET;
+
+				ZeroMemory(first_client_info.sin_zero, 8);
+
+				std::cout << "First client is handled\n";
+				std::cout << "IP: " << inet_ntoa(first_client_info.sin_addr) << " PORT: " << std::to_string(first_client_info.sin_port) << '\n';
+				delete[] ip;
+
+				is_first_client_connected = true;
+				Instance::client_handler = Instance::type::first_client_handler;
+				ProcessFile(Instance::client_handler);
+			}
+			else
+			{
+				std::cout << "The first client is not connected\n";
+				return;
+			}
 		}
 		else
 		{
-			char* ip = new char[INET_ADDRSTRLEN + 1];
-			ip[INET_ADDRSTRLEN] = '\0';
-
-			if (recvfrom(server_socket, ip, INET_ADDRSTRLEN, 0, (sockaddr*)&server_info, &server_info_lenght) <= 0)
+			if (recvfrom(server_socket, (char*)&is_second_client_connected, sizeof(bool), 0, (sockaddr*)&server_info, &server_info_lenght) <= 0)
 			{
 				std::cout << WSAGetLastError() << '\n';
-				perror("recvfrom first client ip");
+				perror("recvfrom first client is_cliet_stared");
 				return;
 			}
-
-			second_client_info.sin_addr.s_addr = reinterpret_cast<u_short>(ip);
-			inet_pton(AF_INET, ip, &(second_client_info.sin_addr));
-
-			int port = 0;
-
-			if (recvfrom(server_socket, (char*)&port, sizeof(int), 0, (sockaddr*)&server_info, &server_info_lenght) <= 0)
-			{
-				std::cout << WSAGetLastError() << '\n';
-				perror("recvfrom first client port");
-				return;
-			}
-
-			second_client_info.sin_port = htons(port);
-			second_client_info.sin_family = AF_INET;
-
-			ZeroMemory(second_client_info.sin_zero, 8);
-
-			std::cout << "Second client is handled\n";
-			std::cout << "IP: " << inet_ntoa(second_client_info.sin_addr) << " PORT: " << std::to_string(second_client_info.sin_port) << '\n';
-
-			delete[] ip;
 
 			is_second_client_connected = true;
-			Instance::client_handler = Instance::type::second_client_handler;
-			ProcessFile(Instance::client_handler);
+
+			if (is_second_client_connected)
+			{
+				char* ip = new char[INET_ADDRSTRLEN + 1];
+				ip[INET_ADDRSTRLEN] = '\0';
+
+				if (recvfrom(server_socket, ip, INET_ADDRSTRLEN, 0, (sockaddr*)&server_info, &server_info_lenght) <= 0)
+				{
+					std::cout << WSAGetLastError() << '\n';
+					perror("recvfrom first client ip");
+					return;
+				}
+
+				second_client_info.sin_addr.s_addr = reinterpret_cast<u_short>(ip);
+				inet_pton(AF_INET, ip, &(second_client_info.sin_addr));
+
+				int port = 0;
+
+				if (recvfrom(server_socket, (char*)&port, sizeof(int), 0, (sockaddr*)&server_info, &server_info_lenght) <= 0)
+				{
+					std::cout << WSAGetLastError() << '\n';
+					perror("recvfrom first client port");
+					return;
+				}
+
+				second_client_info.sin_port = htons(port);
+				second_client_info.sin_family = AF_INET;
+
+				ZeroMemory(second_client_info.sin_zero, 8);
+
+				std::cout << "Second client is handled\n";
+				std::cout << "IP: " << inet_ntoa(second_client_info.sin_addr) << " PORT: " << std::to_string(second_client_info.sin_port) << '\n';
+
+				delete[] ip;
+
+				is_second_client_connected = true;
+				Instance::client_handler = Instance::type::second_client_handler;
+				ProcessFile(Instance::client_handler);
+			}
+			else
+			{
+				std::cout << "The second client is not conneted\n";
+				return;
+			}
 		}
 	}
 
@@ -202,6 +236,8 @@ namespace UDPChat
 		//int len = sizeof(which);
 
 		//getpeername(server_socket, (sockaddr*)&info, &len);
+
+		//if(which.sin_addr.S_un.)
 
 		printf("Received packet from %s:%d\n", inet_ntoa(which.sin_addr), ntohs(which.sin_port));
 		printf("Data: %s\n", recieved_message);
