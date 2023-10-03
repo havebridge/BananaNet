@@ -22,6 +22,9 @@ namespace UDPChat
 
 		SOCKET client_socket;
 
+		struct sockaddr_in server_info;
+		int server_info_lenght;
+
 		struct sockaddr_in client_info;
 		int client_info_lenght;
 
@@ -29,14 +32,13 @@ namespace UDPChat
 		int send_message_size;
 
 		bool is_sended;
+		bool is_connected;
 
 		char* recv_message;
 		int recv_message_size;
 		std::thread recv_thread;
 		std::mutex recv_mutex;
 		std::condition_variable cv;
-
-		bool is_connected;
 
 		Instance::type client_type;
 		std::ifstream client_handler_file;

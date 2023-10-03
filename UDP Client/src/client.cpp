@@ -9,6 +9,8 @@ namespace UDPChat
 		:
 		wsa{ 0 },
 		client_socket(INVALID_SOCKET),
+		server_info{ 0 },
+		server_info_lenght(sizeof(server_info)),
 		client_info{ 0 },
 		client_info_lenght(sizeof(client_info)),
 		is_connected(false),
@@ -40,11 +42,11 @@ namespace UDPChat
 			return false;
 		}
 
-		client_info.sin_family = AF_INET;
-		client_info.sin_port = htons(port);
-		client_info.sin_addr.S_un.S_addr = inet_addr(ip.c_str());
+		server_info.sin_family = AF_INET;
+		server_info.sin_port = htons(port);
+		server_info.sin_addr.S_un.S_addr = inet_addr(ip.c_str());
 
-		ZeroMemory(client_info.sin_zero, 8);
+		ZeroMemory(server_info.sin_zero, 8);
 
 		return true;
 	}
@@ -74,16 +76,34 @@ namespace UDPChat
 
 	bool Client::SendInfo()
 	{
-		if (sendto(client_socket, inet_ntoa(client_info.sin_addr), INET_ADDRSTRLEN, 0, (const sockaddr*)&client_info, client_info_lenght) <= 0)
+		if (sendto(client_socket, (char*)&is_connected, sizeof(bool), 0, (const sockaddr*)&server_info, server_info_lenght) <= 0)
 		{
 			std::cout << WSAGetLastError() << '\n';
 			perror("sendto first client ip");
 			return false;
 		}
 
-		int port = client_info.sin_port;
+		//struct sockaddr_in client_info {0};
+		//int client_info_lenght = sizeof(client_info);
 
-		if (sendto(client_socket, (char*)&port, sizeof(int), 0, (const sockaddr*)&client_info, client_info_lenght) <= 0)
+		getpeername(client_socket, (sockaddr*)&client_info, &client_info_lenght);
+		getsockname(client_socket, (sockaddr*)&client_info, &client_info_lenght);
+
+		printf("Received packet from %s:%d\n", inet_ntoa(client_info.sin_addr), ntohs(client_info.sin_port));
+
+		if (sendto(client_socket, inet_ntoa(client_info.sin_addr), INET_ADDRSTRLEN, 0, (const sockaddr*)&server_info, server_info_lenght) <= 0)
+		{
+			std::cout << WSAGetLastError() << '\n';
+			perror("sendto first client ip");
+			return false;
+		}
+
+		//printf("Received packet from %s:%d\n", inet_ntoa(info.sin_addr), ntohs(info.sin_port));
+		//printf("Data: %s\n", recieved_message);
+
+		//int port = client_info.sin_port;
+
+		if (sendto(client_socket, (char*)&(client_info.sin_port), sizeof(int), 0, (const sockaddr*)&server_info, server_info_lenght) <= 0)
 		{
 			std::cout << WSAGetLastError() << '\n';
 			perror("sendto first client port");
@@ -105,14 +125,14 @@ namespace UDPChat
 
 		send_message_size = send_message.size();
 
-		if (sendto(client_socket, (char*)&send_message_size, sizeof(int), 0, (const sockaddr*)&client_info, client_info_lenght) <= 0)
+		if (sendto(client_socket, (char*)&send_message_size, sizeof(int), 0, (const sockaddr*)&server_info, server_info_lenght) <= 0)
 		{
 			std::cout << WSAGetLastError() << '\n';
 			perror("sendto message size");
 			return;
 		}
 
-		if (sendto(client_socket, send_message.c_str(), send_message_size, 0, (const sockaddr*)&client_info, client_info_lenght) <= 0)
+		if (sendto(client_socket, send_message.c_str(), send_message_size, 0, (const sockaddr*)&server_info, server_info_lenght) <= 0)
 		{
 			std::cout << WSAGetLastError() << '\n';
 			perror("sendto message");
@@ -121,7 +141,7 @@ namespace UDPChat
 
 		int client = static_cast<int>(client_type);
 
-		if (sendto(client_socket, (char*)&client, sizeof(int), 0, (const sockaddr*)&client_info, client_info_lenght) <= 0)
+		if (sendto(client_socket, (char*)&client, sizeof(int), 0, (const sockaddr*)&server_info, server_info_lenght) <= 0)
 		{
 			std::cout << WSAGetLastError() << '\n';
 			perror("sendto message");
@@ -148,7 +168,7 @@ namespace UDPChat
 
 			std::cout << "RecvMSG\n";
 
-			if (recvfrom(client_socket, (char*)&recv_message_size, sizeof(int), 0, (sockaddr*)&client_info, &client_info_lenght) <= 0)
+			if (recvfrom(client_socket, (char*)&recv_message_size, sizeof(int), 0, (sockaddr*)&server_info, &server_info_lenght) <= 0)
 			{
 				std::cout << WSAGetLastError() << '\n';
 				perror("recvfrom message size");
@@ -158,7 +178,7 @@ namespace UDPChat
 			recv_message = new char[recv_message_size + 1];
 			recv_message[recv_message_size] = '\0';
 
-			if (recvfrom(client_socket, recv_message, recv_message_size, 0, (sockaddr*)&client_info, &client_info_lenght) <= 0)
+			if (recvfrom(client_socket, recv_message, recv_message_size, 0, (sockaddr*)&server_info, &server_info_lenght) <= 0)
 			{
 				std::cout << WSAGetLastError() << '\n';
 				perror("recvfrom message");
