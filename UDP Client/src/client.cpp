@@ -5,7 +5,7 @@
 
 namespace UDPChat
 {
-	Client::Client()
+	Client::Client(const char* ip)
 		:
 		wsa{ 0 },
 		client_socket(INVALID_SOCKET),
@@ -14,7 +14,10 @@ namespace UDPChat
 		client_info{ 0 },
 		client_info_lenght(sizeof(client_info)),
 		is_connected(false),
-		recv_message_size(0) {}
+		recv_message_size(0) 
+	{
+		client_info.sin_addr.s_addr = reinterpret_cast<u_short>(ip); 
+	}
 
 
 	bool Client::Connect(std::string ip, int port)
@@ -83,13 +86,14 @@ namespace UDPChat
 			return false;
 		}
 
-		//struct sockaddr_in client_info {0};
-		//int client_info_lenght = sizeof(client_info);
+		client_info_lenght = sizeof(client_info);
 
-		getpeername(client_socket, (sockaddr*)&client_info, &client_info_lenght);
-		getsockname(client_socket, (sockaddr*)&client_info, &client_info_lenght);
+		//getpeername(client_socket, (sockaddr*)&client_info, &client_info_lenght);
+		//getsockname(client_socket, (sockaddr*)&client_info, &client_info_lenght);
 
-		printf("Received packet from %s:%d\n", inet_ntoa(client_info.sin_addr), ntohs(client_info.sin_port));
+		printf("Client %s:%d is connected to UDP server %s:%d\n", 
+				inet_ntoa(client_info.sin_addr), ntohs(client_info.sin_port), 
+				inet_ntoa(server_info.sin_addr), ntohs(server_info.sin_port));
 
 		if (sendto(client_socket, inet_ntoa(client_info.sin_addr), INET_ADDRSTRLEN, 0, (const sockaddr*)&server_info, server_info_lenght) <= 0)
 		{
@@ -97,11 +101,6 @@ namespace UDPChat
 			perror("sendto first client ip");
 			return false;
 		}
-
-		//printf("Received packet from %s:%d\n", inet_ntoa(info.sin_addr), ntohs(info.sin_port));
-		//printf("Data: %s\n", recieved_message);
-
-		//int port = client_info.sin_port;
 
 		if (sendto(client_socket, (char*)&(client_info.sin_port), sizeof(int), 0, (const sockaddr*)&server_info, server_info_lenght) <= 0)
 		{

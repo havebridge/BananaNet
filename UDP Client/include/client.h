@@ -50,7 +50,7 @@ namespace UDPChat
 		void RecvMSG();
 
 	public:
-		explicit Client();
+		explicit Client(const char* ip);
 		Client(const Client&) = delete;
 		Client operator=(const Client&) = delete;
 		~Client();
