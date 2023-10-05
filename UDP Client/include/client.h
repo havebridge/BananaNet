@@ -26,6 +26,7 @@ namespace UDPChat
 		int server_info_lenght;
 
 		PIP_ADAPTER_INFO client_info_ip;
+		std::string client_ip;
 
 		struct sockaddr_in client_info;
 		int client_info_lenght;

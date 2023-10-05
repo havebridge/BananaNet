@@ -7,7 +7,10 @@
 #include <windows.h>
 #include <winsock2.h>
 #include <ws2tcpip.h>
+#include <iphlpapi.h>
 
+#define MALLOC(x) HeapAlloc(GetProcessHeap(), 0, (x))
+#define FREE(x) HeapFree(GetProcessHeap(), 0, (x))
 
 #define INET_ADDRSTRLEN 10
 
@@ -19,7 +22,7 @@ namespace Instance
 	enum class type : uint8_t
 	{
 		first_client_handler = 0,
-		second_client_handler
+		second_client_handler 
 	};
 
 	inline type client_handler;
