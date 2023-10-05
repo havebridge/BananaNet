@@ -11,6 +11,7 @@ namespace UDPChat
 		client_socket(INVALID_SOCKET),
 		server_info{ 0 },
 		server_info_lenght(sizeof(server_info)),
+		client_info_ip(NULL),
 		client_info{ 0 },
 		client_info_lenght(sizeof(client_info)),
 		is_connected(false),
@@ -54,6 +55,178 @@ namespace UDPChat
 		return true;
 	}
 
+	bool Client::GetIp()
+	{
+		PIP_ADAPTER_INFO pAdapterInfo;
+		DWORD dwRetVal = 0;
+		UINT i;
+
+		/* variables used to print DHCP time info */
+		struct tm newtime;
+		char buffer[32];
+		errno_t error;
+
+		ULONG ulOutBufLen = sizeof(IP_ADAPTER_INFO);
+		pAdapterInfo = (IP_ADAPTER_INFO*)MALLOC(sizeof(IP_ADAPTER_INFO));
+		if (pAdapterInfo == NULL)
+		{
+			printf("Error allocating memory needed to call GetAdaptersinfo\n");
+			return false;
+		}
+		// Make an initial call to GetAdaptersInfo to get
+		// the necessary size into the ulOutBufLen variable
+		if (GetAdaptersInfo(pAdapterInfo, &ulOutBufLen) == ERROR_BUFFER_OVERFLOW)
+		{
+			FREE(pAdapterInfo);
+			pAdapterInfo = (IP_ADAPTER_INFO*)MALLOC(ulOutBufLen);
+
+			if (pAdapterInfo == NULL)
+			{
+				printf("Error allocating memory needed to call GetAdaptersinfo\n");
+				return false;
+			}
+		}
+
+		if ((dwRetVal = GetAdaptersInfo(pAdapterInfo, &ulOutBufLen)) == NO_ERROR)
+		{
+			client_info_ip = pAdapterInfo;
+
+			while (client_info_ip)
+			{
+				printf("\tComboIndex: \t%d\n", client_info_ip->ComboIndex);
+				printf("\tAdapter Name: \t%s\n", client_info_ip->AdapterName);
+				printf("\tAdapter Desc: \t%s\n", client_info_ip->Description);
+				printf("\tAdapter Addr: \t");
+
+				for (i = 0; i < client_info_ip->AddressLength; i++) 
+				{
+					if (i == (client_info_ip->AddressLength - 1))
+					{
+						printf("%.2X\n", (int)client_info_ip->Address[i]);
+					}
+					else
+					{
+						printf("%.2X-", (int)client_info_ip->Address[i]);
+					}
+				}
+
+				printf("\tIndex: \t%d\n", client_info_ip->Index);
+				printf("\tType: \t");
+
+				switch (client_info_ip->Type)
+				{
+				case MIB_IF_TYPE_OTHER:
+					printf("Other\n");
+					break;
+				case MIB_IF_TYPE_ETHERNET:
+					printf("Ethernet\n");
+					break;
+				case MIB_IF_TYPE_TOKENRING:
+					printf("Token Ring\n");
+					break;
+				case MIB_IF_TYPE_FDDI:
+					printf("FDDI\n");
+					break;
+				case MIB_IF_TYPE_PPP:
+					printf("PPP\n");
+					break;
+				case MIB_IF_TYPE_LOOPBACK:
+					printf("Lookback\n");
+					break;
+				case MIB_IF_TYPE_SLIP:
+					printf("Slip\n");
+					break;
+				default:
+					printf("Unknown type %ld\n", client_info_ip->Type);
+					break;
+				}
+
+				printf("\tIP Address: \t%s\n", client_info_ip->IpAddressList.IpAddress.String);
+				printf("\tIP Mask: \t%s\n", client_info_ip->IpAddressList.IpMask.String);
+				printf("\tGateway: \t%s\n", client_info_ip->GatewayList.IpAddress.String);
+				printf("\t***\n");
+
+				if (client_info_ip->DhcpEnabled)
+				{
+					printf("\tDHCP Enabled: Yes\n");
+					printf("\t  DHCP Server: \t%s\n", client_info_ip->DhcpServer.IpAddress.String);
+					printf("\t  Lease Obtained: ");
+
+					/* Display local time */
+					error = _localtime32_s(&newtime, (__time32_t*)&client_info_ip->LeaseObtained);
+
+					if (error)
+					{
+						printf("Invalid Argument to _localtime32_s\n");
+					}
+					else 
+					{
+						// Convert to an ASCII representation 
+						error = asctime_s(buffer, 32, &newtime);
+						if (error)
+						{
+							printf("Invalid Argument to asctime_s\n");
+						}
+						else
+						{
+							/* asctime_s returns the string terminated by \n\0 */
+							printf("%s", buffer);
+						}
+					}
+
+					printf("\t  Lease Expires:  ");
+					error = _localtime32_s(&newtime, (__time32_t*)&client_info_ip->LeaseExpires);
+					if (error)
+					{
+						printf("Invalid Argument to _localtime32_s\n");
+					}
+					else 
+					{
+						// Convert to an ASCII representation 
+						error = asctime_s(buffer, 32, &newtime);
+
+						if (error)
+						{
+							printf("Invalid Argument to asctime_s\n");
+						}
+						else
+						{
+							/* asctime_s returns the string terminated by \n\0 */
+							printf("%s", buffer);
+						}
+					}
+				}
+				else
+				{
+					printf("\tDHCP Enabled: No\n");
+				}
+
+				if (client_info_ip->HaveWins) 
+				{
+					printf("\tHave Wins: Yes\n");
+					printf("\t  Primary Wins Server:    %s\n", client_info_ip->PrimaryWinsServer.IpAddress.String);
+					printf("\t  Secondary Wins Server:  %s\n", client_info_ip->SecondaryWinsServer.IpAddress.String);
+				}
+				else
+				{
+					printf("\tHave Wins: No\n");
+				}
+
+				client_info_ip = client_info_ip->Next;
+				printf("\n");
+			}
+		}
+		else 
+		{
+			printf("GetAdaptersInfo failed with error: %d\n", dwRetVal);
+		}
+
+		if (pAdapterInfo)
+			FREE(pAdapterInfo);
+
+		return true;
+	}
+
 	bool Client::ProcessFile(const char* file_name)
 	{
 		client_handler_file.open(file_name);
@@ -79,6 +252,8 @@ namespace UDPChat
 
 	bool Client::SendInfo()
 	{
+		GetIp();
+
 		if (sendto(client_socket, (char*)&is_connected, sizeof(bool), 0, (const sockaddr*)&server_info, server_info_lenght) <= 0)
 		{
 			std::cout << WSAGetLastError() << '\n';

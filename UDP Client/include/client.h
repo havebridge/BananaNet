@@ -25,6 +25,8 @@ namespace UDPChat
 		struct sockaddr_in server_info;
 		int server_info_lenght;
 
+		PIP_ADAPTER_INFO client_info_ip;
+
 		struct sockaddr_in client_info;
 		int client_info_lenght;
 
@@ -44,6 +46,7 @@ namespace UDPChat
 		std::ifstream client_handler_file;
 
 	private:
+		bool GetIp();
 		bool SendInfo();
 		bool ProcessFile(const char* file_name);
 		void SendMSG();
