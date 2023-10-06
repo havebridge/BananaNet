@@ -13,7 +13,7 @@ int main(int argc, char** argv)
 		return 0;
 	}*/
 
-	UDPChat::Client client("127.0.0.1");
+	UDPChat::Client client;
 
 	if (client.Connect("127.0.0.1", 8888))
 	{
