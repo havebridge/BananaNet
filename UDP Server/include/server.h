@@ -5,7 +5,7 @@
 #include <vector>
 #include <fstream>
 
-#include "../../Core.h"
+#include "../../Core/Core.h"
 
 
 #define	MAX_NUM_CLIENTS 2

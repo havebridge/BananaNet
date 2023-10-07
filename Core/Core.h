@@ -7,6 +7,7 @@
 #include <windows.h>
 #include <winsock2.h>
 #include <ws2tcpip.h>
+#include <wininet.h>
 #include <iphlpapi.h>
 
 #define MALLOC(x) HeapAlloc(GetProcessHeap(), 0, (x))
