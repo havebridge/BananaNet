@@ -2,6 +2,8 @@
 
 #pragma warning(disable: 4996)
 
+#define SIO_UDP_CONNRESET _WSAIOW(IOC_VENDOR, 12)
+
 
 namespace UDPChat
 {
@@ -30,7 +32,7 @@ namespace UDPChat
 			return false;
 		}
 
-		if ((server_socket = socket(PF_INET, SOCK_DGRAM, 0)) == SOCKET_ERROR)
+		if ((server_socket = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP)) == SOCKET_ERROR)
 		{
 			std::cout << WSAGetLastError() << '\n';
 			perror("socket");
@@ -67,6 +69,10 @@ namespace UDPChat
 			perror("bind");
 			return false;
 		}
+
+		BOOL bNewBehavior = FALSE;
+		DWORD dwBytesReturned = 0;
+		WSAIoctl(server_socket, SIO_UDP_CONNRESET, &bNewBehavior, sizeof bNewBehavior, NULL, 0, &dwBytesReturned, NULL, NULL);
 
 		std::cout << "UDP Server started at:" << inet_ntoa(server_info.sin_addr) << ":" << htons(server_info.sin_port) << '\n';
 
@@ -150,6 +156,9 @@ namespace UDPChat
 				perror("recvfrom second client is_cliet_stared");
 				return;
 			}
+
+			std::cout << inet_ntoa(server_info.sin_addr) << "\n\n\n\n";
+			std::cout << htons(server_info.sin_port) << "\n\n\n\n";
 
 			is_second_client_connected = true;
 
@@ -246,44 +255,62 @@ namespace UDPChat
 			return;
 		}*/
 
+		/*if (sendto(server_socket, (char*)&send_message_size, sizeof(int), 0, (const sockaddr*)&first_client_info, server_info_lenght) <= 0)
+		{
+			std::cout << WSAGetLastError() << '\n';
+			perror("sendto second client message size");
+			return;
+		}
+
+		if (sendto(server_socket, send_message.c_str(), send_message_size, 0, (const sockaddr*)&first_client_info, server_info_lenght) <= 0)
+		{
+			std::cout << WSAGetLastError() << '\n';
+			perror("sendto second client message");
+			return;
+		}*/
+
 		switch (static_cast<Instance::type>(client))
 		{
 		case Instance::type::first_client_handler:
 		{
 			std::cout << "First client handler\n";
 
-			if (sendto(server_socket, (char*)&send_message_size, sizeof(int), 0, (const sockaddr*)&second_client_info, second_client_info_lenght) <= 0)
+			if (sendto(server_socket, (char*)&send_message_size, sizeof(int), 0, (const sockaddr*)&second_client_info, server_info_lenght) <= 0)
 			{
 				std::cout << WSAGetLastError() << '\n';
 				perror("sendto second client message size");
 				return;
 			}
 
-			if (sendto(server_socket, send_message.c_str(), send_message_size, 0, (const sockaddr*)&second_client_info, second_client_info_lenght) <= 0)
+			if (sendto(server_socket, send_message.c_str(), send_message_size, 0, (const sockaddr*)&second_client_info, server_info_lenght) <= 0)
 			{
 				std::cout << WSAGetLastError() << '\n';
 				perror("sendto second client message");
 				return;
 			}
+
+			printf("Send to %s:%d\n", inet_ntoa(second_client_info.sin_addr), ntohs(second_client_info.sin_port));
 		} break;
 
 		case Instance::type::second_client_handler:
 		{
 			std::cout << "Second client handler\n";
 
-			if (sendto(server_socket, (char*)&send_message_size, sizeof(int), 0, (const sockaddr*)&first_client_info, first_client_info_lenght) <= 0)
+			if (sendto(server_socket, (char*)&send_message_size, sizeof(int), 0, (const sockaddr*)&first_client_info, server_info_lenght) <= 0)
 			{
 				std::cout << WSAGetLastError() << '\n';
 				perror("sendto first client message size");
 				return;
 			}
 
-			if (sendto(server_socket, send_message.c_str(), send_message_size, 0, (const sockaddr*)&first_client_info, first_client_info_lenght) <= 0)
+			if (sendto(server_socket, send_message.c_str(), send_message_size, 0, (const sockaddr*)&first_client_info, server_info_lenght) <= 0)
 			{
 				std::cout << WSAGetLastError() << '\n';
 				perror("sendto first client message");
 				return;
 			}
+
+			printf("Send to %s:%d\n", inet_ntoa(first_client_info.sin_addr), ntohs(first_client_info.sin_port));
 		} break;
 
 		default:

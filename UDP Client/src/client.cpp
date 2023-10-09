@@ -3,6 +3,8 @@
 #pragma warning(disable: 4996)
 
 
+#define SIO_UDP_CONNRESET _WSAIOW(IOC_VENDOR, 12)
+
 namespace UDPChat
 {
 	Client::Client()
@@ -15,6 +17,7 @@ namespace UDPChat
 		client_info{ 0 },
 		client_info_lenght(sizeof(client_info)),
 		is_connected(false),
+		is_sended(false),
 		recieve_message_size(0) {}
 
 
@@ -171,6 +174,8 @@ namespace UDPChat
 			return;
 		}
 
+		is_sended = true;
+
 		cv.notify_one();
 
 		std::cout << "message size send: " << send_message_size;
@@ -220,6 +225,11 @@ namespace UDPChat
 
 	void Client::Run()
 	{
+		BOOL bNewBehavior = FALSE;
+		DWORD dwBytesReturned = 0;
+		WSAIoctl(client_socket, SIO_UDP_CONNRESET, &bNewBehavior, sizeof bNewBehavior, NULL, 0, &dwBytesReturned, NULL, NULL);
+
+
 		SendClientInfo();
 
 		switch (client_type)
