@@ -1,17 +1,9 @@
 #include "../include/client.h"
 
-static void usage(void)
-{
-	std::cout << "Usage: udp_client client_ip server_ip\n";
-}
-
 int main(int argc, char** argv)
 {
-	/*if (argc != 3)
-	{
-		usage();
-		return 0;
-	}*/
+	SetConsoleCP(1251);
+	SetConsoleOutputCP(1251);
 
 	UDPChat::Client client;
 

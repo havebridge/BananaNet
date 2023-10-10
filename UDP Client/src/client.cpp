@@ -55,9 +55,9 @@ namespace UDPChat
 		return true;
 	}
 
-	//IN FUTURE
+	//IN FUTURE get internal ip
 
-	std::string Client::GetExternalIp()
+	std::string Client::GetClientExternalIp()
 	{
 		HINTERNET net = InternetOpen(L"IP retriever",
 			INTERNET_OPEN_TYPE_PRECONFIG,
@@ -106,7 +106,7 @@ namespace UDPChat
 
 	bool Client::SendClientInfo()
 	{
-		client_external_ip = GetExternalIp();
+		client_external_ip = GetClientExternalIp();
 
 		if (sendto(client_socket, (char*)&is_connected, sizeof(bool), 0, (const sockaddr*)&server_info, server_info_lenght) <= 0)
 		{
@@ -115,11 +115,19 @@ namespace UDPChat
 			return false;
 		}
 
+		int a = 1;
+
+		if (sendto(client_socket, (char*)&a, sizeof(int), 0, (const sockaddr*)&server_info, server_info_lenght) <= 0)
+		{
+			std::cout << WSAGetLastError() << '\n';
+			perror("sendto char");
+			return false;
+		}
+
 		client_info_lenght = sizeof(client_info);
 
 		getsockname(client_socket, (sockaddr*)&client_info, &client_info_lenght);
 		client_info.sin_addr.s_addr = inet_addr(client_external_ip.c_str());
-		//client_info.sin_addr.s_addr = inet_addr("192.168.0.102");
 
 		inet_pton(AF_INET, inet_ntoa(client_info.sin_addr), &(client_info.sin_addr));
 
@@ -127,16 +135,9 @@ namespace UDPChat
 			inet_ntoa(client_info.sin_addr), ntohs(client_info.sin_port),
 			inet_ntoa(server_info.sin_addr), ntohs(server_info.sin_port));
 
-		const char* ip_check = inet_ntoa(client_info.sin_addr);
-
-		/*if (sendto(client_socket, inet_ntoa(client_info.sin_addr), INET_ADDRSTRLEN, 0, (const sockaddr*)&server_info, server_info_lenght) <= 0)
-		{
-			std::cout << WSAGetLastError() << '\n';
-			perror("sendto first client ip");
-			return false;
-		}*/
-
 		is_connected = true;
+
+		cv.notify_one();
 
 		ProcessHandlerFile("C:/Users/meylor/source/repos/hnet/handler/file_handler.txt");
 
@@ -145,7 +146,9 @@ namespace UDPChat
 
 	void Client::SendData()
 	{
+#if DEBUG
 		std::cout << "SendMSG\n";
+#endif
 		std::cout << "Send message: ";
 		std::getline(std::cin, send_message);
 
@@ -173,15 +176,12 @@ namespace UDPChat
 			perror("sendto message");
 			return;
 		}
-
-		is_sended = true;
-
-		cv.notify_one();
-
+#if DEBUG
 		std::cout << "message size send: " << send_message_size;
 		std::cout << "\nmessage send:" << send_message.data();
 		std::cout << "\nclient type send:" << client;
 		std::cout << '\n';
+#endif
 	}
 
 	void Client::RecieveData()
@@ -191,11 +191,13 @@ namespace UDPChat
 			std::unique_lock<std::mutex> recv_lock(recieve_mutex);
 
 			cv.wait(recv_lock, [this] {
-				return !is_sended;
+				return is_connected;
 				});
 
+#if DEBUG
 			std::cout << "RecvMSG\n";
 
+#endif
 			if (recvfrom(client_socket, (char*)&recieve_message_size, sizeof(int), 0, (sockaddr*)&server_info, &server_info_lenght) <= 0)
 			{
 				std::cout << WSAGetLastError() << '\n';
@@ -213,11 +215,15 @@ namespace UDPChat
 				return;
 			}
 
+			std::cout << "\nmessage recv: " << recieve_message;
+			std::cout << '\n';
+
+#if DEBUG
 			std::cout << "RECV MESSAGE\n";
 			std::cout << "message size recv: " << recieve_message_size;
 			std::cout << "\nmessage recv: " << recieve_message;
 			std::cout << '\n';
-
+#endif
 			delete[] recieve_message;
 		}
 	}
@@ -231,7 +237,7 @@ namespace UDPChat
 
 
 		SendClientInfo();
-
+#if DEBUG
 		switch (client_type)
 		{
 		case Instance::type::first_client_handler:
@@ -249,6 +255,7 @@ namespace UDPChat
 			break;
 		}
 
+#endif
 		recieve_thread = (std::thread(&Client::RecieveData, this));
 
 		while (is_connected)

@@ -74,6 +74,18 @@ namespace UDPChat
 		DWORD dwBytesReturned = 0;
 		WSAIoctl(server_socket, SIO_UDP_CONNRESET, &bNewBehavior, sizeof bNewBehavior, NULL, 0, &dwBytesReturned, NULL, NULL);
 
+		client_handler_file.open("../handler/file_handler.txt");
+
+		if (client_handler_file.is_open())
+		{
+			client_handler_file << "1";
+			client_handler_file.close();
+		}
+		else
+		{
+			std::cerr << "unable to open the file\n";
+		}
+
 		std::cout << "UDP Server started at:" << inet_ntoa(server_info.sin_addr) << ":" << htons(server_info.sin_port) << '\n';
 
 		return true;
@@ -81,7 +93,7 @@ namespace UDPChat
 
 	bool Server::ProcessFile(Instance::type client_handler)
 	{
-		client_handler_file.open("C:/Users/meylor/source/repos/hnet/handler/file_handler.txt");
+		client_handler_file.open("../handler/file_handler.txt");
 
 		if (client_handler_file.is_open())
 		{
@@ -107,38 +119,34 @@ namespace UDPChat
 				return;
 			}
 
-			std::cout << inet_ntoa(server_info.sin_addr) << "\n\n\n\n";
-			std::cout << htons(server_info.sin_port) << "\n\n\n\n";
+			int a;
 
+			if (recvfrom(server_socket, (char*)&a, sizeof(int), 0, (sockaddr*)&first_client_info, &server_info_lenght) <= 0)
+			{
+				std::cout << WSAGetLastError() << '\n';
+				perror("recvfrom int");
+				return;
+			}
+
+#if DEBUG
+			std::cout << inet_ntoa(server_info.sin_addr) << "\n\n";
+			std::cout << htons(server_info.sin_port) << "\n\n";
+#endif
 			is_first_client_connected = true;
 
 			if (is_first_client_connected)
 			{
-				//char* ip = new char[INET_ADDRSTRLEN + 1];
-				//ip[INET_ADDRSTRLEN] = '\0';
+				//inet_pton(AF_INET, inet_ntoa(server_info.sin_addr), &(first_client_info.sin_addr));
 
-				/*if (recvfrom(server_socket, ip, INET_ADDRSTRLEN, 0, (sockaddr*)&server_info, &server_info_lenght) <= 0)
-				{
-					std::cout << WSAGetLastError() << '\n';
-					perror("recvfrom first client ip");
-					return;
-				}*/
+				//first_client_info.sin_port = htons(server_info.sin_port);
+				//first_client_info.sin_family = AF_INET;
 
-				//ip = inet_ntoa(server_info.sin_addr);
-
-				//first_client_info.sin_addr.s_addr = reinterpret_cast<u_short>(ip);
-				inet_pton(AF_INET, inet_ntoa(server_info.sin_addr), &(first_client_info.sin_addr));
-
-				first_client_info.sin_port = htons(server_info.sin_port);
-				first_client_info.sin_family = AF_INET;
-
-				ZeroMemory(first_client_info.sin_zero, 8);
+				//ZeroMemory(first_client_info.sin_zero, 8);*/
 
 				std::cout << "First client is handled\n";
-				std::cout << "IP: " << inet_ntoa(first_client_info.sin_addr) << " PORT: " << std::to_string(first_client_info.sin_port) << '\n';
-				//delete[] ip;
+				std::cout << "IP: " << inet_ntoa(first_client_info.sin_addr) << " PORT: " << htons(first_client_info.sin_port) << '\n';
 
-				is_first_client_connected = true;
+				//is_first_client_connected = true;
 				Instance::client_handler = Instance::type::first_client_handler;
 				ProcessFile(Instance::client_handler);
 			}
@@ -157,37 +165,33 @@ namespace UDPChat
 				return;
 			}
 
-			std::cout << inet_ntoa(server_info.sin_addr) << "\n\n\n\n";
-			std::cout << htons(server_info.sin_port) << "\n\n\n\n";
+			int a;
 
+			if (recvfrom(server_socket, (char*)&a, sizeof(int), 0, (sockaddr*)&second_client_info, &server_info_lenght) <= 0)
+			{
+				std::cout << WSAGetLastError() << '\n';
+				perror("recvfrom int");
+				return;
+			}
+#if DEBUG
+			std::cout << inet_ntoa(server_info.sin_addr) << "\n\n";
+			std::cout << htons(server_info.sin_port) << "\n\n";
+#endif
 			is_second_client_connected = true;
 
 			if (is_second_client_connected)
 			{
-				/*char* ip = new char[INET_ADDRSTRLEN + 1];
-				ip[INET_ADDRSTRLEN] = '\0';*/
+				//inet_pton(AF_INET, inet_ntoa(server_info.sin_addr), &(second_client_info.sin_addr));
 
-				/*if (recvfrom(server_socket, ip, INET_ADDRSTRLEN, 0, (sockaddr*)&server_info, &server_info_lenght) <= 0)
-				{
-					std::cout << WSAGetLastError() << '\n';
-					perror("recvfrom first client ip");
-					return;
-				}*/
+				//second_client_info.sin_port = htons(server_info.sin_port);
+				//second_client_info.sin_family = AF_INET;
 
-				//second_client_info.sin_addr.s_addr = reinterpret_cast<u_short>(ip);
-				inet_pton(AF_INET, inet_ntoa(server_info.sin_addr), &(second_client_info.sin_addr));
-
-				second_client_info.sin_port = htons(server_info.sin_port);
-				second_client_info.sin_family = AF_INET;
-
-				ZeroMemory(second_client_info.sin_zero, 8);
+				//ZeroMemory(second_client_info.sin_zero, 8);
 
 				std::cout << "Second client is handled\n";
-				std::cout << "IP: " << inet_ntoa(second_client_info.sin_addr) << " PORT: " << std::to_string(second_client_info.sin_port) << '\n';
+				std::cout << "IP: " << inet_ntoa(second_client_info.sin_addr) << " PORT: " << htons(second_client_info.sin_port) << '\n';
 
-				//delete[] ip;
-
-				is_second_client_connected = true;
+				//is_second_client_connected = true;
 				Instance::client_handler = Instance::type::second_client_handler;
 				ProcessFile(Instance::client_handler);
 			}
@@ -228,12 +232,6 @@ namespace UDPChat
 			return;
 		}
 
-		//struct sockaddr_in info;
-		//int len = sizeof(which);
-
-		//getpeername(server_socket, (sockaddr*)&info, &len);
-
-		//if(which.sin_addr.S_un.)
 
 		printf("Received packet from %s:%d\n", inet_ntoa(which.sin_addr), ntohs(which.sin_port));
 		printf("Data: %s\n", recieved_message);
@@ -241,33 +239,23 @@ namespace UDPChat
 		send_message.assign(recieved_message, recieved_message_size);
 		send_message_size = send_message.size();
 
-		/*if (sendto(server_socket, (char*)&send_message_size, sizeof(int), 0, (const sockaddr*)&which, sizeof(which)) <= 0)
+		
+		/*if (sendto(server_socket, (char*)&send_message_size, sizeof(int), 0, (const sockaddr*)&first_client_info, sizeof(first_client_info)) <= 0)
 		{
 			std::cout << WSAGetLastError() << '\n';
-			perror("sendto second client message size");
+			perror("sendto first client message size");
 			return;
 		}
 
-		if (sendto(server_socket, send_message.c_str(), send_message_size, 0, (const sockaddr*)&which, sizeof(which)) <= 0)
+		if (sendto(server_socket, send_message.c_str(), send_message_size, 0, (const sockaddr*)&first_client_info, sizeof(first_client_info)) <= 0)
 		{
 			std::cout << WSAGetLastError() << '\n';
-			perror("sendto second client message");
+			perror("sendto first client message");
 			return;
 		}*/
 
-		/*if (sendto(server_socket, (char*)&send_message_size, sizeof(int), 0, (const sockaddr*)&first_client_info, server_info_lenght) <= 0)
-		{
-			std::cout << WSAGetLastError() << '\n';
-			perror("sendto second client message size");
-			return;
-		}
+		//std::cout << "Send to " << inet_ntoa(first_client_info.sin_addr) << ':' << std::to_string(first_client_info.sin_port) << '\n';
 
-		if (sendto(server_socket, send_message.c_str(), send_message_size, 0, (const sockaddr*)&first_client_info, server_info_lenght) <= 0)
-		{
-			std::cout << WSAGetLastError() << '\n';
-			perror("sendto second client message");
-			return;
-		}*/
 
 		switch (static_cast<Instance::type>(client))
 		{
@@ -275,42 +263,42 @@ namespace UDPChat
 		{
 			std::cout << "First client handler\n";
 
-			if (sendto(server_socket, (char*)&send_message_size, sizeof(int), 0, (const sockaddr*)&second_client_info, server_info_lenght) <= 0)
+			if (sendto(server_socket, (char*)&send_message_size, sizeof(int), 0, (const sockaddr*)&first_client_info, sizeof(first_client_info)) <= 0)
 			{
 				std::cout << WSAGetLastError() << '\n';
 				perror("sendto second client message size");
 				return;
 			}
 
-			if (sendto(server_socket, send_message.c_str(), send_message_size, 0, (const sockaddr*)&second_client_info, server_info_lenght) <= 0)
+			if (sendto(server_socket, send_message.c_str(), send_message_size, 0, (const sockaddr*)&first_client_info, sizeof(first_client_info)) <= 0)
 			{
 				std::cout << WSAGetLastError() << '\n';
 				perror("sendto second client message");
 				return;
 			}
 
-			printf("Send to %s:%d\n", inet_ntoa(second_client_info.sin_addr), ntohs(second_client_info.sin_port));
+			std::cout << "Send to " << inet_ntoa(first_client_info.sin_addr) << ':' << std::to_string(first_client_info.sin_port) << '\n';
 		} break;
 
 		case Instance::type::second_client_handler:
 		{
 			std::cout << "Second client handler\n";
 
-			if (sendto(server_socket, (char*)&send_message_size, sizeof(int), 0, (const sockaddr*)&first_client_info, server_info_lenght) <= 0)
+			if (sendto(server_socket, (char*)&send_message_size, sizeof(int), 0, (const sockaddr*)&second_client_info, sizeof(second_client_info)) <= 0)
 			{
 				std::cout << WSAGetLastError() << '\n';
 				perror("sendto first client message size");
 				return;
 			}
 
-			if (sendto(server_socket, send_message.c_str(), send_message_size, 0, (const sockaddr*)&first_client_info, server_info_lenght) <= 0)
+			if (sendto(server_socket, send_message.c_str(), send_message_size, 0, (const sockaddr*)&second_client_info, sizeof(second_client_info)) <= 0)
 			{
 				std::cout << WSAGetLastError() << '\n';
 				perror("sendto first client message");
 				return;
 			}
 
-			printf("Send to %s:%d\n", inet_ntoa(first_client_info.sin_addr), ntohs(first_client_info.sin_port));
+			std::cout << "Send to " << inet_ntoa(second_client_info.sin_addr) << ':' << std::to_string(second_client_info.sin_port) << '\n';
 		} break;
 
 		default:
@@ -318,10 +306,12 @@ namespace UDPChat
 			break;
 		}
 
+#if DEBUG
 		std::cout << "message size send: " << recieved_message_size;
 		std::cout << "\nmessage send: " << recieved_message;
 		std::cout << '\n';
 
+#endif
 		delete[] recieved_message;
 	}
 

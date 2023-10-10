@@ -10,8 +10,6 @@
 
 #include "../../Core/Core.h"
 
-//#include "../../UDP Server/include/server.h"
-
 
 namespace UDPChat
 {
@@ -22,7 +20,6 @@ namespace UDPChat
 
 		SOCKET client_socket;
 
-		//std::string server_external_ip;
 		struct sockaddr_in server_info;
 		int server_info_lenght;
 
@@ -47,7 +44,7 @@ namespace UDPChat
 		std::ifstream client_handler_file;
 
 	private:
-		std::string GetExternalIp();
+		std::string GetClientExternalIp();
 		bool SendClientInfo();
 		bool ProcessHandlerFile(const char* file_name);
 		void SendData();
