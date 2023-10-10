@@ -17,7 +17,6 @@
 #define SIO_UDP_CONNRESET _WSAIOW(IOC_VENDOR, 12)
 
 #define DEBUG 0
-#define RELEASE 0
 
 namespace Instance
 {
