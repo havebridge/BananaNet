@@ -25,7 +25,7 @@ namespace UDPChat
 
 	bool Server::Init()
 	{
-		if ((WSAStartup(MAKEWORD(2, 2), &wsa)) == -1)
+		if ((WSAStartup(MAKEWORD(2, 2), &wsa)) != 0)
 		{
 			std::cout << WSAGetLastError() << '\n';
 			perror("WSAStartup");
@@ -136,13 +136,6 @@ namespace UDPChat
 
 			if (is_first_client_connected)
 			{
-				//inet_pton(AF_INET, inet_ntoa(server_info.sin_addr), &(first_client_info.sin_addr));
-
-				//first_client_info.sin_port = htons(server_info.sin_port);
-				//first_client_info.sin_family = AF_INET;
-
-				//ZeroMemory(first_client_info.sin_zero, 8);*/
-
 				std::cout << "First client is handled\n";
 				std::cout << "IP: " << inet_ntoa(first_client_info.sin_addr) << " PORT: " << htons(first_client_info.sin_port) << '\n';
 
@@ -233,29 +226,11 @@ namespace UDPChat
 		}
 
 
-		printf("Received packet from %s:%d\n", inet_ntoa(which.sin_addr), ntohs(which.sin_port));
+		printf("Received packet from %s:%d\n", inet_ntoa(which.sin_addr), htons(which.sin_port));
 		printf("Data: %s\n", recieved_message);
 
 		send_message.assign(recieved_message, recieved_message_size);
 		send_message_size = send_message.size();
-
-		
-		/*if (sendto(server_socket, (char*)&send_message_size, sizeof(int), 0, (const sockaddr*)&first_client_info, sizeof(first_client_info)) <= 0)
-		{
-			std::cout << WSAGetLastError() << '\n';
-			perror("sendto first client message size");
-			return;
-		}
-
-		if (sendto(server_socket, send_message.c_str(), send_message_size, 0, (const sockaddr*)&first_client_info, sizeof(first_client_info)) <= 0)
-		{
-			std::cout << WSAGetLastError() << '\n';
-			perror("sendto first client message");
-			return;
-		}*/
-
-		//std::cout << "Send to " << inet_ntoa(first_client_info.sin_addr) << ':' << std::to_string(first_client_info.sin_port) << '\n';
-
 
 		switch (static_cast<Instance::type>(client))
 		{
@@ -277,7 +252,7 @@ namespace UDPChat
 				return;
 			}
 
-			std::cout << "Send to " << inet_ntoa(first_client_info.sin_addr) << ':' << std::to_string(first_client_info.sin_port) << '\n';
+			std::cout << "Send to " << inet_ntoa(first_client_info.sin_addr) << ':' << htons(first_client_info.sin_port) << '\n';
 		} break;
 
 		case Instance::type::second_client_handler:
@@ -298,7 +273,7 @@ namespace UDPChat
 				return;
 			}
 
-			std::cout << "Send to " << inet_ntoa(second_client_info.sin_addr) << ':' << std::to_string(second_client_info.sin_port) << '\n';
+			std::cout << "Send to " << inet_ntoa(second_client_info.sin_addr) << ':' << htons(second_client_info.sin_port) << '\n';
 		} break;
 
 		default:
