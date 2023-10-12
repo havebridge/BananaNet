@@ -45,7 +45,7 @@ namespace UDPChat
 		bool ProcessFile(Instance::type client_handler);
 
 	public:
-		explicit Server(std::string ip, int port);
+		explicit Server(std::string ip, int port) noexcept;
 		Server(const Server&) = delete;
 		Server operator=(const Server&) = delete;
 		~Server();
