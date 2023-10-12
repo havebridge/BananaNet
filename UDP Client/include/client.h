@@ -23,14 +23,13 @@ namespace UDPChat
 		struct sockaddr_in server_info;
 		int server_info_lenght;
 
-		PIP_ADAPTER_INFO client_internal_ip;
+		PIP_ADAPTER_INFO client_local_ip;
 		std::string client_external_ip;
 		struct sockaddr_in client_info;
 		int client_info_lenght;
 
 		std::string send_message;
 		int send_message_size;
-		bool is_sended;
 
 		bool is_connected;
 
@@ -44,14 +43,14 @@ namespace UDPChat
 		std::ifstream client_handler_file;
 
 	private:
-		std::string GetClientExternalIp();
+		std::string GetClientExternalIp() const;
 		bool SendClientInfo();
 		bool ProcessHandlerFile(const char* file_name);
 		void SendData();
 		void RecieveData();
 
 	public:
-		explicit Client();
+		explicit Client() noexcept;
 		Client(const Client&) = delete;
 		Client operator=(const Client&) = delete;
 		~Client();

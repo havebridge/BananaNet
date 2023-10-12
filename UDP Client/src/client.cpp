@@ -7,17 +7,16 @@
 
 namespace UDPChat
 {
-	Client::Client()
+	Client::Client() noexcept
 		:
 		wsa{ 0 },
 		client_socket(INVALID_SOCKET),
 		server_info{ 0 },
 		server_info_lenght(sizeof(server_info)),
-		client_internal_ip(NULL),
+		client_local_ip(NULL),
 		client_info{ 0 },
 		client_info_lenght(sizeof(client_info)),
 		is_connected(false),
-		is_sended(false),
 		recieve_message_size(0) {}
 
 
@@ -30,7 +29,7 @@ namespace UDPChat
 			return false;
 		}
 
-		if ((client_socket = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP)) == SOCKET_ERROR)
+		if ((client_socket = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP)) == INVALID_SOCKET)
 		{
 			std::cout << WSAGetLastError() << '\n';
 			perror("socket");
@@ -39,7 +38,7 @@ namespace UDPChat
 
 		char yes = '1';
 
-		if ((setsockopt(client_socket, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int)) == -1))
+		if ((setsockopt(client_socket, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int)) == SOCKET_ERROR))
 		{
 			std::cout << WSAGetLastError() << '\n';
 			perror("setsockport");
@@ -55,22 +54,12 @@ namespace UDPChat
 		return true;
 	}
 
-	//IN FUTURE get internal ip
+	//TODO(hasbridge): get internal ip function
 
-	std::string Client::GetClientExternalIp()
+	std::string Client::GetClientExternalIp() const
 	{
-		HINTERNET net = InternetOpen(L"IP retriever",
-			INTERNET_OPEN_TYPE_PRECONFIG,
-			NULL,
-			NULL,
-			0);
-
-		HINTERNET conn = InternetOpenUrl(net,
-			L"http://myexternalip.com/raw",
-			NULL,
-			0,
-			INTERNET_FLAG_RELOAD,
-			0);
+		HINTERNET net = InternetOpen(L"IP retriever", INTERNET_OPEN_TYPE_PRECONFIG, NULL, NULL, 0);
+		HINTERNET conn = InternetOpenUrl(net, L"http://myexternalip.com/raw", NULL, 0, INTERNET_FLAG_RELOAD, 0);
 
 		char buffer[4096];
 		DWORD read;
@@ -115,9 +104,9 @@ namespace UDPChat
 			return false;
 		}
 
-		int a = 1;
+		char send_info_to_server = '1';
 
-		if (sendto(client_socket, (char*)&a, sizeof(int), 0, (const sockaddr*)&server_info, server_info_lenght) <= 0)
+		if (sendto(client_socket, &send_info_to_server, sizeof(char), 0, (const sockaddr*)&server_info, server_info_lenght) <= 0)
 		{
 			std::cout << WSAGetLastError() << '\n';
 			perror("sendto char");
