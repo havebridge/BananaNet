@@ -1,7 +1,12 @@
 cmake_minimum_required(VERSION 3.27.7)
 
-project(test)
+set(CMAKE_CXX_STANDARD 20)
 
-set(CMAKE_CXX_STANDARD 17)
+project(server)
+project(client)
 
-add_executable(test main.cpp)
+add_executable(server "UDP Server/src/main.cpp")
+add_executable(client "UDP Client/src/main.cpp")
+
+target_include_directories(server PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/UDP Server/include/")
+target_include_directories(client PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/UDP Client/include/")
