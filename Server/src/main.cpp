@@ -1,4 +1,5 @@
-#include "../include/server.h"
+#include "server.h"
+#include "Log.h"
 
 int main(int argc, char** argv)
 {
@@ -7,6 +8,8 @@ int main(int argc, char** argv)
 
 	SetConsoleCP(1251);
 	SetConsoleOutputCP(1251);
+
+	Core::test();
 
 	UDPChat::Server server("127.0.0.1", 8888);
 
