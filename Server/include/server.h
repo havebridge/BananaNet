@@ -7,7 +7,6 @@
 
 #include "Core.h"
 
-
 #define	MAX_NUM_CLIENTS 2
 
 namespace UDPChat

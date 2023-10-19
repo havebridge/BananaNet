@@ -2,8 +2,8 @@ cmake_minimum_required(VERSION 3.27.7)
 
 project(server)
 
-configure_file("../handler/file_handler.txt"
-    ${CMAKE_CURRENT_BINARY_DIR} COPYONLY)
+
+
 
 set(SOURCES src/server.cpp src/main.cpp)
 

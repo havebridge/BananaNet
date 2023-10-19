@@ -4,7 +4,6 @@
 
 #define SIO_UDP_CONNRESET _WSAIOW(IOC_VENDOR, 12)
 
-
 namespace UDPChat
 {
 	Server::Server(std::string ip, int port) noexcept
@@ -73,7 +72,8 @@ namespace UDPChat
 		DWORD dwBytesReturned = 0;
 		WSAIoctl(server_socket, SIO_UDP_CONNRESET, &bNewBehavior, sizeof bNewBehavior, NULL, 0, &dwBytesReturned, NULL, NULL);
 
-		client_handler_file.open("../handler/file_handler.txt");
+
+		client_handler_file.open("../../../handler/file_handler.txt");
 
 		if (client_handler_file.is_open())
 		{
@@ -92,7 +92,7 @@ namespace UDPChat
 
 	bool Server::ProcessFile(Instance::type client_handler)
 	{
-		client_handler_file.open("../handler/file_handler.txt");
+		client_handler_file.open("../../../handler/file_handler.txt");
 
 		if (client_handler_file.is_open())
 		{
