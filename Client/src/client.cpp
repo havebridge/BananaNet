@@ -1,7 +1,7 @@
 #include "client.h"
 
-#pragma warning(disable: 4996)
 
+#pragma warning(disable: 4996)
 
 #define SIO_UDP_CONNRESET _WSAIOW(IOC_VENDOR, 12)
 
@@ -127,8 +127,8 @@ namespace UDPChat
 		is_connected = true;
 
 		cv.notify_one();
-
-		ProcessHandlerFile("C:/Users/meylor/source/repos/hnet/handler/file_handler.txt");
+//client_handler_file.open("../../../handler/file_handler.txt");
+		ProcessHandlerFile("../../../handler/file_handler.txt");
 
 		return is_connected;
 	}
@@ -185,7 +185,6 @@ namespace UDPChat
 
 #if DEBUG
 			std::cout << "RecvMSG\n";
-
 #endif
 			if (recvfrom(client_socket, (char*)&recieve_message_size, sizeof(int), 0, (sockaddr*)&server_info, &server_info_lenght) <= 0)
 			{

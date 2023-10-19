@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.27.7)
 
 project(client)
 
-configure_file("../handler/file_handler.txt"
+configure_file("W:/repos/hnet/handler/file_handler.txt"
     ${CMAKE_CURRENT_BINARY_DIR} COPYONLY)
 
 set(SOURCES src/client.cpp src/main.cpp)

@@ -8,8 +8,8 @@
 #include <mutex>
 #include <condition_variable>
 
-#include "Core.h"
 
+#include "Core.h"
 
 namespace UDPChat
 {
