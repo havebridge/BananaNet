@@ -1,4 +1,4 @@
-#include "server.h"
+#include "../include/server.h"
 
 #pragma warning(disable: 4996)
 
@@ -19,7 +19,6 @@ namespace UDPChat
 		second_client_info{ 0 },
 		is_first_client_connected(false),
 		is_second_client_connected(false) {}
-
 
 	bool Server::Init()
 	{
@@ -73,7 +72,7 @@ namespace UDPChat
 		WSAIoctl(server_socket, SIO_UDP_CONNRESET, &bNewBehavior, sizeof bNewBehavior, NULL, 0, &dwBytesReturned, NULL, NULL);
 
 
-		client_handler_file.open("../../../handler/file_handler.txt");
+		client_handler_file.open("../handler/file_handler.txt");
 
 		if (client_handler_file.is_open())
 		{
@@ -92,7 +91,7 @@ namespace UDPChat
 
 	bool Server::ProcessFile(Instance::type client_handler)
 	{
-		client_handler_file.open("../../../handler/file_handler.txt");
+		client_handler_file.open("../handler/file_handler.txt");
 
 		if (client_handler_file.is_open())
 		{

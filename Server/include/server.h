@@ -5,7 +5,7 @@
 #include <vector>
 #include <fstream>
 
-#include "Core.h"
+#include "../../Core/Core.h"
 
 #define	MAX_NUM_CLIENTS 2
 
@@ -36,7 +36,7 @@ namespace UDPChat
 		bool is_first_client_connected;
 		bool is_second_client_connected;
 
-		std::ofstream client_handler_file;
+		std::ofstream client_handler_file;	
 
 	private:
 		void ClientsHandler();
