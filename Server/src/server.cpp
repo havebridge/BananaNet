@@ -268,7 +268,6 @@ namespace UDPChat
 		std::cout << "\nmessage send: " << recieved_message;
 		std::cout << '\n';
 #endif
-
 		delete[] recieved_message;
 	}
 
