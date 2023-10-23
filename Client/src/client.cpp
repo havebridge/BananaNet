@@ -1,4 +1,4 @@
-#include "client.h"
+#include "../include/client.h"
 
 
 #pragma warning(disable: 4996)
@@ -127,9 +127,7 @@ namespace UDPChat
 		is_connected = true;
 
 		cv.notify_one();
-//client_handler_file.open("../../../handler/file_handler.txt");
-		ProcessHandlerFile("../../../handler/file_handler.txt");
-
+		ProcessHandlerFile("../handler/file_handler.txt");
 		return is_connected;
 	}
 
