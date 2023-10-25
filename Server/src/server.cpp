@@ -24,15 +24,15 @@ namespace UDPChat
 	{
 		if ((WSAStartup(MAKEWORD(2, 2), &wsa)) != 0)
 		{
-			std::cout << WSAGetLastError() << '\n';
-			perror("WSAStartup");
+			HN_ERROR("WSAStartup() failed");
+			HN_ERROR("WSA Error: {0}", WSAGetLastError());
 			return false;
 		}
 
 		if ((server_socket = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP)) == INVALID_SOCKET)
 		{
-			std::cout << WSAGetLastError() << '\n';
-			perror("socket");
+			HN_ERROR("socket() failed");
+			HN_ERROR("WSA Error: {0}", WSAGetLastError());
 			return false;
 		}
 
@@ -40,8 +40,8 @@ namespace UDPChat
 
 		if (ioctlsocket(server_socket, FIONBIO, &mode) == SOCKET_ERROR)
 		{
-			std::cout << WSAGetLastError() << '\n';
-			perror("ioctlsocket");
+			HN_ERROR("ioctlsocket() failed");
+			HN_ERROR("WSA Error: {0}", WSAGetLastError());
 			return false;
 		}
 
@@ -49,8 +49,8 @@ namespace UDPChat
 
 		if (setsockopt(server_socket, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int)) == SOCKET_ERROR)
 		{
-			std::cout << WSAGetLastError() << '\n';
-			perror("setsockport");
+			HN_ERROR("setsockopt() failed");
+			HN_ERROR("WSA Error: {0}", WSAGetLastError());
 			return false;
 		}
 
@@ -62,8 +62,8 @@ namespace UDPChat
 
 		if (bind(server_socket, (const sockaddr*)&server_info, server_info_lenght) == SOCKET_ERROR)
 		{
-			std::cout << WSAGetLastError() << '\n';
-			perror("bind");
+			HN_ERROR("bind() failed");
+			HN_ERROR("WSA Error: {0}", WSAGetLastError());
 			return false;
 		}
 
@@ -71,8 +71,9 @@ namespace UDPChat
 		DWORD dwBytesReturned = 0;
 		WSAIoctl(server_socket, SIO_UDP_CONNRESET, &bNewBehavior, sizeof bNewBehavior, NULL, 0, &dwBytesReturned, NULL, NULL);
 
+		Core::Log::Init();
 
-		client_handler_file.open("../handler/file_handler.txt");
+		client_handler_file.open("../../../../handler/file_handler.txt");
 
 		if (client_handler_file.is_open())
 		{
@@ -81,17 +82,17 @@ namespace UDPChat
 		}
 		else
 		{
-			std::cerr << "unable to open the file\n";
+			HN_ERROR("Unable to open the file");
 		}
 
-		std::cout << "UDP Server started at:" << inet_ntoa(server_info.sin_addr) << ":" << htons(server_info.sin_port) << '\n';
+		HN_INFO("UDP Server started at: {0}:{1}", inet_ntoa(server_info.sin_addr), htons(server_info.sin_port));
 
 		return true;
 	}
 
 	bool Server::ProcessFile(Instance::type client_handler)
 	{
-		client_handler_file.open("../handler/file_handler.txt");
+		client_handler_file.open("../../../../handler/file_handler.txt");
 
 		if (client_handler_file.is_open())
 		{
@@ -101,7 +102,7 @@ namespace UDPChat
 		}
 		else
 		{
-			std::cerr << "Unable to open the file\n";
+			HN_ERROR("Unable to open the file");
 			return false;
 		}
 	}
@@ -112,8 +113,8 @@ namespace UDPChat
 		{
 			if (recvfrom(server_socket, (char*)(&is_first_client_connected), sizeof(bool), 0, (sockaddr*)&server_info, &server_info_lenght) <= 0)
 			{
-				std::cout << WSAGetLastError() << '\n';
-				perror("recvfrom first client is_cliet_stared");
+				HN_ERROR("recvfom(is_first_client_connected) is failed");
+				HN_ERROR("WSA Error: {0}", WSAGetLastError());
 				return;
 			}
 
@@ -121,8 +122,8 @@ namespace UDPChat
 
 			if (recvfrom(server_socket, &get_info, sizeof(char), 0, (sockaddr*)&first_client_info, &server_info_lenght) <= 0)
 			{
-				std::cout << WSAGetLastError() << '\n';
-				perror("recvfrom int");
+				HN_ERROR("recvfom(get_info) is failed");
+				HN_ERROR("WSA Error: {0}", WSAGetLastError());
 				return;
 			}
 
@@ -130,15 +131,15 @@ namespace UDPChat
 
 			if (is_first_client_connected)
 			{
-				std::cout << "First client is handled\n";
-				std::cout << "IP: " << inet_ntoa(first_client_info.sin_addr) << " PORT: " << htons(first_client_info.sin_port) << '\n';
+				HN_INFO("First client is handled");
+				HN_INFO("IP: {0} PORT: {1}", inet_ntoa(first_client_info.sin_addr), htons(first_client_info.sin_port));
 
 				Instance::client_handler = Instance::type::first_client_handler;
 				ProcessFile(Instance::client_handler);
 			}
 			else
 			{
-				std::cout << "The first client is not connected\n";
+				HN_ERROR("The first client is not connected");
 				return;
 			}
 		}
@@ -146,8 +147,8 @@ namespace UDPChat
 		{
 			if (recvfrom(server_socket, (char*)&is_second_client_connected, sizeof(bool), 0, (sockaddr*)&server_info, &server_info_lenght) <= 0)
 			{
-				std::cout << WSAGetLastError() << '\n';
-				perror("recvfrom second client is_cliet_stared");
+				HN_ERROR("recvfom(is_second_client_connected) is failed");
+				HN_ERROR("WSA Error: {0}", WSAGetLastError());
 				return;
 			}
 
@@ -155,8 +156,8 @@ namespace UDPChat
 
 			if (recvfrom(server_socket, &get_info, sizeof(char), 0, (sockaddr*)&second_client_info, &server_info_lenght) <= 0)
 			{
-				std::cout << WSAGetLastError() << '\n';
-				perror("recvfrom int");
+				HN_ERROR("recvfom(get_info) is failed");
+				HN_ERROR("WSA Error: {0}", WSAGetLastError());
 				return;
 			}
 
@@ -164,15 +165,15 @@ namespace UDPChat
 
 			if (is_second_client_connected)
 			{
-				std::cout << "Second client is handled\n";
-				std::cout << "IP: " << inet_ntoa(second_client_info.sin_addr) << " PORT: " << htons(second_client_info.sin_port) << '\n';
+				HN_INFO("Second client is handled");
+				HN_INFO("IP: {0} PORT: {1}", inet_ntoa(second_client_info.sin_addr), htons(second_client_info.sin_port));
 
 				Instance::client_handler = Instance::type::second_client_handler;
 				ProcessFile(Instance::client_handler);
 			}
 			else
 			{
-				std::cout << "The second client is not conneted\n";
+				HN_ERROR("The second client is not connected");
 				return;
 			}
 		}
@@ -183,8 +184,8 @@ namespace UDPChat
 	{
 		if (recvfrom(server_socket, (char*)&recieved_message_size, sizeof(int), 0, (sockaddr*)&in, &server_info_lenght) <= 0)
 		{
-			std::cout << WSAGetLastError() << '\n';
-			perror("recvfrom message size");
+			HN_ERROR("recvfom(recieved_message_size) is failed");
+			HN_ERROR("WSA Error: {0}", WSAGetLastError());
 			return;
 		}
 
@@ -193,8 +194,8 @@ namespace UDPChat
 
 		if (recvfrom(server_socket, recieved_message, recieved_message_size, 0, (sockaddr*)&in, &server_info_lenght) <= 0)
 		{
-			std::cout << WSAGetLastError() << '\n';
-			perror("recvfrom message");
+			HN_ERROR("recvfom(recieved_message) is failed");
+			HN_ERROR("WSA Error: {0}", WSAGetLastError());
 			return;
 		}
 
@@ -202,14 +203,16 @@ namespace UDPChat
 
 		if (recvfrom(server_socket, (char*)&client, sizeof(int), 0, (sockaddr*)&in, &server_info_lenght) <= 0)
 		{
-			std::cout << WSAGetLastError() << '\n';
-			perror("recvfrom message");
+			HN_ERROR("recvfom(client) is failed");
+			HN_ERROR("WSA Error: {0}", WSAGetLastError());
 			return;
 		}
 
 
-		printf("Received packet from %s:%d\n", inet_ntoa(in.sin_addr), htons(in.sin_port));
-		printf("Data: %s\n", recieved_message);
+		HN_INFO("Received packet from {0}:{1}", inet_ntoa(in.sin_addr), htons(in.sin_port));
+		HN_INFO("Data: {0}", recieved_message);
+		//printf("Received packet from %s:%d\n", inet_ntoa(in.sin_addr), htons(in.sin_port));
+		//printf("Data: %s\n", recieved_message);
 
 		send_message.assign(recieved_message, recieved_message_size);
 		send_message_size = send_message.size();
@@ -218,48 +221,49 @@ namespace UDPChat
 		{
 		case Instance::type::first_client_handler:
 		{
-			std::cout << "First client handler\n";
+			HN_WARN("First client handler");
 
 			if (sendto(server_socket, (char*)&send_message_size, sizeof(int), 0, (const sockaddr*)&first_client_info, sizeof(first_client_info)) <= 0)
 			{
-				std::cout << WSAGetLastError() << '\n';
-				perror("sendto second client message size");
+				HN_ERROR("sendto(send_message_size) to second client is failed");
+				HN_ERROR("WSA Error: {0}", WSAGetLastError());
 				return;
 			}
 
 			if (sendto(server_socket, send_message.c_str(), send_message_size, 0, (const sockaddr*)&first_client_info, sizeof(first_client_info)) <= 0)
 			{
-				std::cout << WSAGetLastError() << '\n';
-				perror("sendto second client message");
+				HN_ERROR("sendto(send_message) to second client is failed");
+				HN_ERROR("WSA Error: {0}", WSAGetLastError());
 				return;
 			}
 
-			std::cout << "Send to " << inet_ntoa(first_client_info.sin_addr) << ':' << htons(first_client_info.sin_port) << '\n';
+			HN_INFO("Send to {0}:{1}", inet_ntoa(first_client_info.sin_addr), htons(first_client_info.sin_port));
+			//std::cout << "Send to " << inet_ntoa(first_client_info.sin_addr) << ':' << htons(first_client_info.sin_port) << '\n';
 		} break;
 
 		case Instance::type::second_client_handler:
 		{
-			std::cout << "Second client handler\n";
+			HN_WARN("Second client handler");
 
 			if (sendto(server_socket, (char*)&send_message_size, sizeof(int), 0, (const sockaddr*)&second_client_info, sizeof(second_client_info)) <= 0)
 			{
-				std::cout << WSAGetLastError() << '\n';
-				perror("sendto first client message size");
+				HN_ERROR("sendto(send_message_size) to first client is failed");
+				HN_ERROR("WSA Error: {0}", WSAGetLastError());
 				return;
 			}
 
 			if (sendto(server_socket, send_message.c_str(), send_message_size, 0, (const sockaddr*)&second_client_info, sizeof(second_client_info)) <= 0)
 			{
-				std::cout << WSAGetLastError() << '\n';
-				perror("sendto first client message");
+				HN_ERROR("sendto(send_message) to first client is failed");
+				HN_ERROR("WSA Error: {0}", WSAGetLastError());
 				return;
 			}
 
-			std::cout << "Send to " << inet_ntoa(second_client_info.sin_addr) << ':' << htons(second_client_info.sin_port) << '\n';
+			HN_INFO("Send to {0}:{1}", inet_ntoa(second_client_info.sin_addr), htons(second_client_info.sin_port));
 		} break;
 
 		default:
-			std::cout << "Default\n";
+			HN_ERROR("Default");
 			break;
 		}
 

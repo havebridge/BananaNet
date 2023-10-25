@@ -6,6 +6,7 @@
 #include <fstream>
 
 #include "../../Core/Core.h"
+#include "logger.h"
 
 #define	MAX_NUM_CLIENTS 2
 
