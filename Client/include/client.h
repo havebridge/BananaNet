@@ -10,6 +10,7 @@
 
 #include "../../Core/Core.h"
 
+
 namespace UDPChat
 {
 	class Client
@@ -29,7 +30,6 @@ namespace UDPChat
 
 		std::string send_message;
 		int send_message_size;
-
 		bool is_connected;
 
 		char* recieve_message;

@@ -1,6 +1,5 @@
 #include "../include/client.h"
 
-
 #pragma warning(disable: 4996)
 
 #define SIO_UDP_CONNRESET _WSAIOW(IOC_VENDOR, 12)
