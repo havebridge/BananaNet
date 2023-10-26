@@ -127,7 +127,7 @@ namespace UDPChat
 				return;
 			}
 
-			is_first_client_connected = true;
+			is_first_client_connected = get_info;
 
 			if (is_first_client_connected)
 			{
@@ -161,7 +161,7 @@ namespace UDPChat
 				return;
 			}
 
-			is_second_client_connected = true;
+			is_second_client_connected = get_info;
 
 			if (is_second_client_connected)
 			{
@@ -211,8 +211,6 @@ namespace UDPChat
 
 		HN_INFO("Received packet from {0}:{1}", inet_ntoa(in.sin_addr), htons(in.sin_port));
 		HN_INFO("Data: {0}", recieved_message);
-		//printf("Received packet from %s:%d\n", inet_ntoa(in.sin_addr), htons(in.sin_port));
-		//printf("Data: %s\n", recieved_message);
 
 		send_message.assign(recieved_message, recieved_message_size);
 		send_message_size = send_message.size();
@@ -238,7 +236,6 @@ namespace UDPChat
 			}
 
 			HN_INFO("Send to {0}:{1}", inet_ntoa(first_client_info.sin_addr), htons(first_client_info.sin_port));
-			//std::cout << "Send to " << inet_ntoa(first_client_info.sin_addr) << ':' << htons(first_client_info.sin_port) << '\n';
 		} break;
 
 		case Instance::type::second_client_handler:
@@ -268,9 +265,8 @@ namespace UDPChat
 		}
 
 #if DEBUG
-		std::cout << "message size send: " << recieved_message_size;
-		std::cout << "\nmessage send: " << recieved_message;
-		std::cout << '\n';
+		HN_INFO("message size send: {0}", recieved_message_size);
+		HN_INFO("message send: {0}", recieved_message);
 #endif
 		delete[] recieved_message;
 	}
