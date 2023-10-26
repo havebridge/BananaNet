@@ -132,9 +132,6 @@ namespace UDPChat
 
 	void Client::SendData()
 	{
-#if DEBUG
-		std::cout << "SendMSG\n";
-#endif
 		std::cout << "Send message: ";
 		std::getline(std::cin, send_message);
 
@@ -162,12 +159,6 @@ namespace UDPChat
 			perror("sendto message");
 			return;
 		}
-#if DEBUG
-		std::cout << "message size send: " << send_message_size;
-		std::cout << "\nmessage send:" << send_message.data();
-		std::cout << "\nclient type send:" << client;
-		std::cout << '\n';
-#endif
 	}
 
 	void Client::RecieveData()
@@ -180,9 +171,6 @@ namespace UDPChat
 				return is_connected;
 				});
 
-#if DEBUG
-			std::cout << "RecvMSG\n";
-#endif
 			if (recvfrom(client_socket, (char*)&recieve_message_size, sizeof(int), 0, (sockaddr*)&server_info, &server_info_lenght) <= 0)
 			{
 				std::cout << WSAGetLastError() << '\n';
@@ -200,15 +188,8 @@ namespace UDPChat
 				return;
 			}
 
-			std::cout << "\nmessage recv: " << recieve_message;
-			std::cout << '\n';
+			std::cout << recieve_message << '\n';
 
-#if DEBUG
-			std::cout << "RECV MESSAGE\n";
-			std::cout << "message size recv: " << recieve_message_size;
-			std::cout << "\nmessage recv: " << recieve_message;
-			std::cout << '\n';
-#endif
 			delete[] recieve_message;
 		}
 	}
@@ -220,27 +201,8 @@ namespace UDPChat
 		DWORD dwBytesReturned = 0;
 		WSAIoctl(client_socket, SIO_UDP_CONNRESET, &bNewBehavior, sizeof bNewBehavior, NULL, 0, &dwBytesReturned, NULL, NULL);
 
-
 		SendClientInfo();
-#if DEBUG
-		switch (client_type)
-		{
-		case Instance::type::first_client_handler:
-		{
-			std::cout << "first\n";
-		} break;
 
-		case Instance::type::second_client_handler:
-		{
-			std::cout << "second\n";
-		} break;
-
-		default:
-			std::cout << "dafault\n";
-			break;
-		}
-
-#endif
 		recieve_thread = (std::thread(&Client::RecieveData, this));
 
 		while (is_connected)

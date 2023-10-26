@@ -18,16 +18,13 @@
 
 #define DEBUG 0
 
-#define CMAKE_BUILD 0
-
 namespace Instance
 {
 	enum class type : uint8_t
 	{
 		first_client_handler = 0,
-		second_client_handler 
+		second_client_handler
 	};
 
 	inline type client_handler;
-	inline bool is_cmake_included = false;
 }

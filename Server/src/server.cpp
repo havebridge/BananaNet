@@ -77,7 +77,7 @@ namespace UDPChat
 
 		if (client_handler_file.is_open())
 		{
-			client_handler_file << "1";
+			client_handler_file << "0";
 			client_handler_file.close();
 		}
 		else
@@ -134,7 +134,7 @@ namespace UDPChat
 				HN_INFO("First client is handled");
 				HN_INFO("IP: {0} PORT: {1}", inet_ntoa(first_client_info.sin_addr), htons(first_client_info.sin_port));
 
-				Instance::client_handler = Instance::type::first_client_handler;
+				Instance::client_handler = Instance::type::second_client_handler;
 				ProcessFile(Instance::client_handler);
 			}
 			else
@@ -168,7 +168,7 @@ namespace UDPChat
 				HN_INFO("Second client is handled");
 				HN_INFO("IP: {0} PORT: {1}", inet_ntoa(second_client_info.sin_addr), htons(second_client_info.sin_port));
 
-				Instance::client_handler = Instance::type::second_client_handler;
+				Instance::client_handler = Instance::type::first_client_handler;
 				ProcessFile(Instance::client_handler);
 			}
 			else
@@ -221,42 +221,42 @@ namespace UDPChat
 		{
 			HN_WARN("First client handler");
 
-			if (sendto(server_socket, (char*)&send_message_size, sizeof(int), 0, (const sockaddr*)&first_client_info, sizeof(first_client_info)) <= 0)
+			if (sendto(server_socket, (char*)&send_message_size, sizeof(int), 0, (const sockaddr*)&second_client_info, sizeof(second_client_info)) <= 0)
 			{
 				HN_ERROR("sendto(send_message_size) to second client is failed");
 				HN_ERROR("WSA Error: {0}", WSAGetLastError());
 				return;
 			}
 
-			if (sendto(server_socket, send_message.c_str(), send_message_size, 0, (const sockaddr*)&first_client_info, sizeof(first_client_info)) <= 0)
+			if (sendto(server_socket, send_message.c_str(), send_message_size, 0, (const sockaddr*)&second_client_info, sizeof(second_client_info)) <= 0)
 			{
 				HN_ERROR("sendto(send_message) to second client is failed");
 				HN_ERROR("WSA Error: {0}", WSAGetLastError());
 				return;
 			}
 
-			HN_INFO("Send to {0}:{1}", inet_ntoa(first_client_info.sin_addr), htons(first_client_info.sin_port));
+			HN_INFO("Send to {0}:{1}", inet_ntoa(second_client_info.sin_addr), htons(second_client_info.sin_port));
 		} break;
 
 		case Instance::type::second_client_handler:
 		{
 			HN_WARN("Second client handler");
 
-			if (sendto(server_socket, (char*)&send_message_size, sizeof(int), 0, (const sockaddr*)&second_client_info, sizeof(second_client_info)) <= 0)
+			if (sendto(server_socket, (char*)&send_message_size, sizeof(int), 0, (const sockaddr*)&first_client_info, sizeof(first_client_info)) <= 0)
 			{
 				HN_ERROR("sendto(send_message_size) to first client is failed");
 				HN_ERROR("WSA Error: {0}", WSAGetLastError());
 				return;
 			}
 
-			if (sendto(server_socket, send_message.c_str(), send_message_size, 0, (const sockaddr*)&second_client_info, sizeof(second_client_info)) <= 0)
+			if (sendto(server_socket, send_message.c_str(), send_message_size, 0, (const sockaddr*)&first_client_info, sizeof(first_client_info)) <= 0)
 			{
 				HN_ERROR("sendto(send_message) to first client is failed");
 				HN_ERROR("WSA Error: {0}", WSAGetLastError());
 				return;
 			}
 
-			HN_INFO("Send to {0}:{1}", inet_ntoa(second_client_info.sin_addr), htons(second_client_info.sin_port));
+			HN_INFO("Send to {0}:{1}", inet_ntoa(first_client_info.sin_addr), htons(first_client_info.sin_port));
 		} break;
 
 		default:
