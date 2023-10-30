@@ -16,6 +16,16 @@ namespace UDPChat
 	class Client
 	{
 	private:
+		struct ClientInfoSend
+		{
+			char login[MAX_LENGTH];
+			char password[MAX_LENGTH];
+
+			char ip[MAX_LENGTH];
+			char* port;
+		};
+
+	private:
 		WSAData wsa;
 
 		SOCKET client_socket;
@@ -41,10 +51,13 @@ namespace UDPChat
 		Instance::type client_type;
 		std::ifstream client_handler_file;
 
+		//std::unique_ptr<ClientInfoSend> client_info_send;
+		ClientInfoSend client_info_send;
 	private:
-		std::string GetClientExternalIp() const;
+		void GetClientExternalIp();
 		bool SendClientInfo();
 		bool ProcessHandlerFile(const char* file_name);
+		void ProcessClientInfo(const char* ip);
 		void SendData();
 		void RecieveData();
 
