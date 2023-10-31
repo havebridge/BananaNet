@@ -55,20 +55,6 @@ namespace UDPChat
 
 	//TODO(hasbridge): get internal ip function
 
-	void Client::ProcessClientInfo(const char ip[])
-	{
-		std::cout << "Enter the login: ";
-		std::cin >> *client_info_send.login;
-
-		std::cout << "Enter the password: ";
-		std::cin >> *client_info_send.password;
-
-		for (int i = *client_info_send.ip; i <= 12; i++)
-		{
-			client_info_send.ip[i] = ip[i];
-		}
-	}
-
 	void Client::GetClientExternalIp()
 	{
 		HINTERNET net = InternetOpenW(L"IP retriever", INTERNET_OPEN_TYPE_PRECONFIG, NULL, NULL, 0);
@@ -81,7 +67,6 @@ namespace UDPChat
 		InternetCloseHandle(net);
 
 		client_external_ip = std::string(buffer, read);
-		ProcessClientInfo(client_external_ip.c_str());
 	}
 
 	bool Client::ProcessHandlerFile(const char* file_name)
@@ -111,11 +96,13 @@ namespace UDPChat
 	{
 		GetClientExternalIp();
 
-		std::cout << "The ip is: " << client_info_send.ip;
-		std::cout << "The login is: " << client_info_send.login;
-		std::cout << "The password is: " << client_info_send.password;
+		std::cout << "Enter the login: ";
+		std::cin >> login;
 
-		/*if (sendto(client_socket, (char*)&is_connected, sizeof(bool), 0, (const sockaddr*)&server_info, server_info_lenght) <= 0)
+		std::cout << "Enter the password: ";
+		std::cin >> password;
+
+		if (sendto(client_socket, (char*)&is_connected, sizeof(bool), 0, (const sockaddr*)&server_info, server_info_lenght) <= 0)
 		{
 			std::cout << WSAGetLastError() << '\n';
 			perror("sendto first client ip");
@@ -131,6 +118,20 @@ namespace UDPChat
 			return false;
 		}
 
+		if (sendto(client_socket, login.c_str(), login.size(), 0, (const sockaddr*)&server_info, server_info_lenght) <= 0)
+		{
+			std::cout << WSAGetLastError() << '\n';
+			perror("sendto login");
+			return false;
+		}
+
+		if (sendto(client_socket, password.c_str(), password.size(), 0, (const sockaddr*)&server_info, server_info_lenght) <= 0)
+		{
+			std::cout << WSAGetLastError() << '\n';
+			perror("sendto password");
+			return false;
+		}
+
 		client_info_lenght = sizeof(client_info);
 
 		getsockname(client_socket, (sockaddr*)&client_info, &client_info_lenght);
@@ -140,12 +141,12 @@ namespace UDPChat
 
 		printf("Client %s:%d is connected to UDP server %s:%d\n",
 			inet_ntoa(client_info.sin_addr), ntohs(client_info.sin_port),
-			inet_ntoa(server_info.sin_addr), ntohs(server_info.sin_port));*/
+			inet_ntoa(server_info.sin_addr), ntohs(server_info.sin_port));
 
 		is_connected = true;
 
-		//cv.notify_one();
-		//ProcessHandlerFile("../handler/file_handler.txt");
+		cv.notify_one();
+		ProcessHandlerFile("../handler/file_handler.txt");
 		return is_connected;
 	}
 
@@ -213,6 +214,12 @@ namespace UDPChat
 		}
 	}
 
+	void Client::Disconnect()
+	{
+		std::cout << "Disconnect\n";
+		is_connected = false;
+	}
+
 
 	void Client::Run()
 	{
@@ -222,18 +229,18 @@ namespace UDPChat
 
 		SendClientInfo();
 
-		//recieve_thread = (std::thread(&Client::RecieveData, this));
+		recieve_thread = (std::thread(&Client::RecieveData, this));
 
-		//while (is_connected)
-		//{
-		//	SendData();
-		//}
+		while (is_connected)
+		{
+			SendData();
+		}
 	}
 
 	Client::~Client()
 	{
 		recieve_thread.join();
-		WSACleanup();
 		closesocket(client_socket);
+		WSACleanup();
 	}
 }
