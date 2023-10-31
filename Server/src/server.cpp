@@ -87,7 +87,9 @@ namespace UDPChat
 
 		HN_INFO("UDP Server started at: {0}:{1}", inet_ntoa(server_info.sin_addr), htons(server_info.sin_port));
 
-		return true;
+		running = true;
+
+		return running;
 	}
 
 	bool Server::ProcessFile(Instance::type client_handler)
@@ -109,6 +111,19 @@ namespace UDPChat
 
 	void Server::ClientsHandler()
 	{
+		while (running)
+		{
+			// TODO(): recive packet with encrypted login, password and ip
+			// set to client and add to server
+			std::unique_lock<std::mutex> client_lock(client_handler);
+
+			cv.wait(client_lock, [this] {
+				return is_accession;
+				});
+
+			//std::unique_ptr<Client> client = new Client()
+		}
+
 		if (is_first_client_connected == false)
 		{
 			if (recvfrom(server_socket, (char*)(&is_first_client_connected), sizeof(bool), 0, (sockaddr*)&server_info, &server_info_lenght) <= 0)
@@ -260,7 +275,7 @@ namespace UDPChat
 		} break;
 
 		default:
-			HN_ERROR("Default");
+			HN_ERROR("There is no another connected client");
 			break;
 		}
 
@@ -273,6 +288,8 @@ namespace UDPChat
 
 	void Server::Start()
 	{
+		connect_thread = (std::thread(&Server::ClientsHandler, this));
+
 		while (is_first_client_connected == false || is_second_client_connected == false)
 		{
 			ClientsHandler();
@@ -287,12 +304,13 @@ namespace UDPChat
 
 	void Server::Stop()
 	{
+		connect_thread.join();
 		closesocket(server_socket);
 	}
 
 	Server::~Server()
 	{
-		WSACleanup();
 		closesocket(server_socket);
+		WSACleanup();
 	}
 }

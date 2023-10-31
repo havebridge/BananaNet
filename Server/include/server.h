@@ -15,6 +15,24 @@ namespace UDPChat
 	class Server
 	{
 	private:
+		struct Client
+		{
+			std::string login;
+			std::string password;
+
+			struct sockaddr_in info;
+			bool is_connected;
+
+			Client(const std::string& login, const std::string& password, const struct sockaddr_in info)
+				:
+				login(std::move(login)),
+				password(std::move(password)),
+				info(info),
+				is_connected(true) {}
+
+			~Client() = default;
+		};
+	private:
 		WSAData wsa;
 
 		SOCKET server_socket;
@@ -23,6 +41,9 @@ namespace UDPChat
 
 		struct sockaddr_in server_info;
 		int server_info_lenght;
+		std::thread connect_thread;
+		bool running;
+		bool is_accession;
 
 		char* recieved_message;
 		int recieved_message_size;
@@ -38,6 +59,10 @@ namespace UDPChat
 		bool is_second_client_connected;
 
 		std::ofstream client_handler_file;	
+
+		std::vector<std::unique_ptr<Client>> clients;
+		std::mutex client_handler;
+		std::condition_variable cv;
 
 	private:
 		void ClientsHandler();
