@@ -4,6 +4,8 @@
 
 #define SIO_UDP_CONNRESET _WSAIOW(IOC_VENDOR, 12)
 
+using namespace std::chrono_literals;
+
 namespace UDPChat
 {
 	Server::Server(std::string ip, int port) noexcept
@@ -111,85 +113,95 @@ namespace UDPChat
 
 	void Server::ClientsHandler()
 	{
+		/*if (recvfrom(server_socket, (char*)(&is_first_client_connected), sizeof(bool), 0, (sockaddr*)&server_info, &server_info_lenght) <= 0)
+		{
+			HN_ERROR("recvfom(is_first_client_connected) is failed");
+			HN_ERROR("WSA Error: {0}", WSAGetLastError());
+			return;
+		}*/
+
+		//while (running)
+		//{
+		//	// TODO(): recive packet with encrypted login, password and ip
+		//	// set to client and add to server
+
+		//	std::unique_lock<std::mutex> client_lock(client_handler);
+
+		//	cv.wait(client_lock, [this] {
+		//		return is_accession;
+		//		});
+
+		//	//std::unique_ptr<Client> client = new Client()
+		//}
 		while (running)
 		{
-			// TODO(): recive packet with encrypted login, password and ip
-			// set to client and add to server
-			std::unique_lock<std::mutex> client_lock(client_handler);
-
-			cv.wait(client_lock, [this] {
-				return is_accession;
-				});
-
-			//std::unique_ptr<Client> client = new Client()
-		}
-
-		if (is_first_client_connected == false)
-		{
-			if (recvfrom(server_socket, (char*)(&is_first_client_connected), sizeof(bool), 0, (sockaddr*)&server_info, &server_info_lenght) <= 0)
+			if (is_first_client_connected == false)
 			{
-				HN_ERROR("recvfom(is_first_client_connected) is failed");
-				HN_ERROR("WSA Error: {0}", WSAGetLastError());
-				return;
-			}
+				if (recvfrom(server_socket, (char*)(&is_first_client_connected), sizeof(bool), 0, (sockaddr*)&server_info, &server_info_lenght) <= 0)
+				{
+					HN_ERROR("recvfom(is_first_client_connected) is failed");
+					HN_ERROR("WSA Error: {0}", WSAGetLastError());
+					return;
+				}
 
-			char get_info;
+				char get_info;
 
-			if (recvfrom(server_socket, &get_info, sizeof(char), 0, (sockaddr*)&first_client_info, &server_info_lenght) <= 0)
-			{
-				HN_ERROR("recvfom(get_info) is failed");
-				HN_ERROR("WSA Error: {0}", WSAGetLastError());
-				return;
-			}
+				if (recvfrom(server_socket, &get_info, sizeof(char), 0, (sockaddr*)&first_client_info, &server_info_lenght) <= 0)
+				{
+					HN_ERROR("recvfom(get_info) is failed");
+					HN_ERROR("WSA Error: {0}", WSAGetLastError());
+					return;
+				}
 
-			is_first_client_connected = get_info;
+				is_first_client_connected = get_info;
 
-			if (is_first_client_connected)
-			{
-				HN_INFO("First client is handled");
-				HN_INFO("IP: {0} PORT: {1}", inet_ntoa(first_client_info.sin_addr), htons(first_client_info.sin_port));
+				if (is_first_client_connected)
+				{
+					HN_INFO("First client is handled");
+					HN_INFO("IP: {0} PORT: {1}", inet_ntoa(first_client_info.sin_addr), htons(first_client_info.sin_port));
 
-				Instance::client_handler = Instance::type::second_client_handler;
-				ProcessFile(Instance::client_handler);
+					Instance::client_handler = Instance::type::second_client_handler;
+					ProcessFile(Instance::client_handler);
+				}
+				else
+				{
+					HN_ERROR("The first client is not connected");
+					return;
+				}
 			}
 			else
 			{
-				HN_ERROR("The first client is not connected");
-				return;
-			}
-		}
-		else
-		{
-			if (recvfrom(server_socket, (char*)&is_second_client_connected, sizeof(bool), 0, (sockaddr*)&server_info, &server_info_lenght) <= 0)
-			{
-				HN_ERROR("recvfom(is_second_client_connected) is failed");
-				HN_ERROR("WSA Error: {0}", WSAGetLastError());
-				return;
-			}
+				if (recvfrom(server_socket, (char*)&is_second_client_connected, sizeof(bool), 0, (sockaddr*)&server_info, &server_info_lenght) <= 0)
+				{
+					HN_ERROR("recvfom(is_second_client_connected) is failed");
+					HN_ERROR("WSA Error: {0}", WSAGetLastError());
+					return;
+				}
 
-			char get_info;
+				char get_info;
 
-			if (recvfrom(server_socket, &get_info, sizeof(char), 0, (sockaddr*)&second_client_info, &server_info_lenght) <= 0)
-			{
-				HN_ERROR("recvfom(get_info) is failed");
-				HN_ERROR("WSA Error: {0}", WSAGetLastError());
-				return;
-			}
+				if (recvfrom(server_socket, &get_info, sizeof(char), 0, (sockaddr*)&second_client_info, &server_info_lenght) <= 0)
+				{
+					HN_ERROR("recvfom(get_info) is failed");
+					HN_ERROR("WSA Error: {0}", WSAGetLastError());
+					return;
+				}
 
-			is_second_client_connected = get_info;
+				is_second_client_connected = get_info;
 
-			if (is_second_client_connected)
-			{
-				HN_INFO("Second client is handled");
-				HN_INFO("IP: {0} PORT: {1}", inet_ntoa(second_client_info.sin_addr), htons(second_client_info.sin_port));
+				if (is_second_client_connected)
+				{
+					HN_INFO("Second client is handled");
+					HN_INFO("IP: {0} PORT: {1}", inet_ntoa(second_client_info.sin_addr), htons(second_client_info.sin_port));
 
-				Instance::client_handler = Instance::type::first_client_handler;
-				ProcessFile(Instance::client_handler);
-			}
-			else
-			{
-				HN_ERROR("The second client is not connected");
-				return;
+					Instance::client_handler = Instance::type::first_client_handler;
+					ProcessFile(Instance::client_handler);
+				}
+				else
+				{
+					HN_ERROR("The second client is not connected");
+					return;
+				}
 			}
 		}
 	}
@@ -197,114 +209,124 @@ namespace UDPChat
 
 	void Server::ProcessMessage()
 	{
-		if (recvfrom(server_socket, (char*)&recieved_message_size, sizeof(int), 0, (sockaddr*)&in, &server_info_lenght) <= 0)
+		while (true)
 		{
-			HN_ERROR("recvfom(recieved_message_size) is failed");
-			HN_ERROR("WSA Error: {0}", WSAGetLastError());
-			return;
-		}
+			std::unique_lock<std::mutex> message_lock(message_mutex);
 
-		recieved_message = new char[recieved_message_size + 1];
-		recieved_message[recieved_message_size] = '\0';
+			message_cv.wait(message_lock, [this] {
+				return is_first_client_connected && is_second_client_connected;
+				});
 
-		if (recvfrom(server_socket, recieved_message, recieved_message_size, 0, (sockaddr*)&in, &server_info_lenght) <= 0)
-		{
-			HN_ERROR("recvfom(recieved_message) is failed");
-			HN_ERROR("WSA Error: {0}", WSAGetLastError());
-			return;
-		}
-
-		int client = 0;
-
-		if (recvfrom(server_socket, (char*)&client, sizeof(int), 0, (sockaddr*)&in, &server_info_lenght) <= 0)
-		{
-			HN_ERROR("recvfom(client) is failed");
-			HN_ERROR("WSA Error: {0}", WSAGetLastError());
-			return;
-		}
-
-
-		HN_INFO("Received packet from {0}:{1}", inet_ntoa(in.sin_addr), htons(in.sin_port));
-		HN_INFO("Data: {0}", recieved_message);
-
-		send_message.assign(recieved_message, recieved_message_size);
-		send_message_size = send_message.size();
-
-		switch (static_cast<Instance::type>(client))
-		{
-		case Instance::type::first_client_handler:
-		{
-			HN_WARN("First client handler");
-
-			if (sendto(server_socket, (char*)&send_message_size, sizeof(int), 0, (const sockaddr*)&second_client_info, sizeof(second_client_info)) <= 0)
+			if (recvfrom(server_socket, (char*)&recieved_message_size, sizeof(int), 0, (sockaddr*)&in, &server_info_lenght) <= 0)
 			{
-				HN_ERROR("sendto(send_message_size) to second client is failed");
+				HN_ERROR("recvfom(recieved_message_size) is failed");
 				HN_ERROR("WSA Error: {0}", WSAGetLastError());
 				return;
 			}
 
-			if (sendto(server_socket, send_message.c_str(), send_message_size, 0, (const sockaddr*)&second_client_info, sizeof(second_client_info)) <= 0)
+			recieved_message = new char[recieved_message_size + 1];
+			recieved_message[recieved_message_size] = '\0';
+
+			if (recvfrom(server_socket, recieved_message, recieved_message_size, 0, (sockaddr*)&in, &server_info_lenght) <= 0)
 			{
-				HN_ERROR("sendto(send_message) to second client is failed");
+				HN_ERROR("recvfom(recieved_message) is failed");
 				HN_ERROR("WSA Error: {0}", WSAGetLastError());
 				return;
 			}
 
-			HN_INFO("Send to {0}:{1}", inet_ntoa(second_client_info.sin_addr), htons(second_client_info.sin_port));
-		} break;
+			int client = 0;
 
-		case Instance::type::second_client_handler:
-		{
-			HN_WARN("Second client handler");
-
-			if (sendto(server_socket, (char*)&send_message_size, sizeof(int), 0, (const sockaddr*)&first_client_info, sizeof(first_client_info)) <= 0)
+			if (recvfrom(server_socket, (char*)&client, sizeof(int), 0, (sockaddr*)&in, &server_info_lenght) <= 0)
 			{
-				HN_ERROR("sendto(send_message_size) to first client is failed");
+				HN_ERROR("recvfom(client) is failed");
 				HN_ERROR("WSA Error: {0}", WSAGetLastError());
 				return;
 			}
 
-			if (sendto(server_socket, send_message.c_str(), send_message_size, 0, (const sockaddr*)&first_client_info, sizeof(first_client_info)) <= 0)
+
+			HN_INFO("Received packet from {0}:{1}", inet_ntoa(in.sin_addr), htons(in.sin_port));
+			HN_INFO("Data: {0}", recieved_message);
+
+			send_message.assign(recieved_message, recieved_message_size);
+			send_message_size = send_message.size();
+
+			switch (static_cast<Instance::type>(client))
 			{
-				HN_ERROR("sendto(send_message) to first client is failed");
-				HN_ERROR("WSA Error: {0}", WSAGetLastError());
-				return;
+			case Instance::type::first_client_handler:
+			{
+				HN_WARN("First client handler");
+
+				if (sendto(server_socket, (char*)&send_message_size, sizeof(int), 0, (const sockaddr*)&second_client_info, sizeof(second_client_info)) <= 0)
+				{
+					HN_ERROR("sendto(send_message_size) to second client is failed");
+					HN_ERROR("WSA Error: {0}", WSAGetLastError());
+					return;
+				}
+
+				if (sendto(server_socket, send_message.c_str(), send_message_size, 0, (const sockaddr*)&second_client_info, sizeof(second_client_info)) <= 0)
+				{
+					HN_ERROR("sendto(send_message) to second client is failed");
+					HN_ERROR("WSA Error: {0}", WSAGetLastError());
+					return;
+				}
+
+				HN_INFO("Send to {0}:{1}", inet_ntoa(second_client_info.sin_addr), htons(second_client_info.sin_port));
+			} break;
+
+			case Instance::type::second_client_handler:
+			{
+				HN_WARN("Second client handler");
+
+				if (sendto(server_socket, (char*)&send_message_size, sizeof(int), 0, (const sockaddr*)&first_client_info, sizeof(first_client_info)) <= 0)
+				{
+					HN_ERROR("sendto(send_message_size) to first client is failed");
+					HN_ERROR("WSA Error: {0}", WSAGetLastError());
+					return;
+				}
+
+				if (sendto(server_socket, send_message.c_str(), send_message_size, 0, (const sockaddr*)&first_client_info, sizeof(first_client_info)) <= 0)
+				{
+					HN_ERROR("sendto(send_message) to first client is failed");
+					HN_ERROR("WSA Error: {0}", WSAGetLastError());
+					return;
+				}
+
+				HN_INFO("Send to {0}:{1}", inet_ntoa(first_client_info.sin_addr), htons(first_client_info.sin_port));
+			} break;
+
+			default:
+				HN_ERROR("There is no another connected client");
+				break;
 			}
-
-			HN_INFO("Send to {0}:{1}", inet_ntoa(first_client_info.sin_addr), htons(first_client_info.sin_port));
-		} break;
-
-		default:
-			HN_ERROR("There is no another connected client");
-			break;
-		}
 
 #if DEBUG
-		HN_INFO("message size send: {0}", recieved_message_size);
-		HN_INFO("message send: {0}", recieved_message);
+			HN_INFO("message size send: {0}", recieved_message_size);
+			HN_INFO("message send: {0}", recieved_message);
 #endif
-		delete[] recieved_message;
+			delete[] recieved_message;
+		}
 	}
 
 	void Server::Start()
 	{
 		connect_thread = (std::thread(&Server::ClientsHandler, this));
-
-		while (is_first_client_connected == false || is_second_client_connected == false)
+		message_thread = (std::thread(&Server::ProcessMessage, this));
+		/*while (is_first_client_connected == false || is_second_client_connected == false)
 		{
 			ClientsHandler();
-		}
-
-		while (is_first_client_connected && is_second_client_connected)
-		{
-			ProcessMessage();
-		}
+		}*/
+		//message_thread = (std::thread(&Server::ProcessMessage, this));
+		//while (true)
+		//{
+			//ProcessMessage();
+		//}
 	}
 
 
 	void Server::Stop()
 	{
 		connect_thread.join();
+		message_thread.join();
 		closesocket(server_socket);
 	}
 

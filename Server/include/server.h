@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 #include <fstream>
+#include <ctime>
 
 #include "../../Core/Core.h"
 #include "logger.h"
@@ -25,8 +26,8 @@ namespace UDPChat
 
 			Client(const std::string& login, const std::string& password, const struct sockaddr_in info)
 				:
-				login(std::move(login)),
-				password(std::move(password)),
+				login(login),
+				password(password),
 				info(info),
 				is_connected(true) {}
 
@@ -42,6 +43,9 @@ namespace UDPChat
 		struct sockaddr_in server_info;
 		int server_info_lenght;
 		std::thread connect_thread;
+		std::thread message_thread;
+		std::mutex message_mutex;
+		std::condition_variable message_cv;
 		bool running;
 		bool is_accession;
 
