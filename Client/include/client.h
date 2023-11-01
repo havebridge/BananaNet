@@ -32,7 +32,8 @@ namespace UDPChat
 
 		std::string send_message;
 		int send_message_size;
-		bool is_connected;
+		bool is_connected = false;
+		bool is_send_info = false;
 
 		char* recieve_message;
 		int recieve_message_size;

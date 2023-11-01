@@ -50,7 +50,9 @@ namespace UDPChat
 
 		ZeroMemory(server_info.sin_zero, 8);
 
-		return true;
+		is_connected = true;
+
+		return is_connected;
 	}
 
 	//TODO(hasbridge): get internal ip function
@@ -96,11 +98,11 @@ namespace UDPChat
 	{
 		GetClientExternalIp();
 
-		std::cout << "Enter the login: ";
-		std::cin >> login;
+		//std::cout << "Enter the login: ";
+		//std::cin >> login;
 
-		std::cout << "Enter the password: ";
-		std::cin >> password;
+		//std::cout << "Enter the password: ";
+		//std::cin >> password;
 
 		if (sendto(client_socket, (char*)&is_connected, sizeof(bool), 0, (const sockaddr*)&server_info, server_info_lenght) <= 0)
 		{
@@ -118,7 +120,7 @@ namespace UDPChat
 			return false;
 		}
 
-		if (sendto(client_socket, login.c_str(), login.size(), 0, (const sockaddr*)&server_info, server_info_lenght) <= 0)
+	/*	if (sendto(client_socket, login.c_str(), login.size(), 0, (const sockaddr*)&server_info, server_info_lenght) <= 0)
 		{
 			std::cout << WSAGetLastError() << '\n';
 			perror("sendto login");
@@ -130,7 +132,7 @@ namespace UDPChat
 			std::cout << WSAGetLastError() << '\n';
 			perror("sendto password");
 			return false;
-		}
+		}*/
 
 		client_info_lenght = sizeof(client_info);
 
@@ -143,11 +145,12 @@ namespace UDPChat
 			inet_ntoa(client_info.sin_addr), ntohs(client_info.sin_port),
 			inet_ntoa(server_info.sin_addr), ntohs(server_info.sin_port));
 
-		is_connected = true;
-
 		cv.notify_one();
 		ProcessHandlerFile("../handler/file_handler.txt");
-		return is_connected;
+
+		is_send_info = true;
+
+		return is_send_info;
 	}
 
 	void Client::SendData()
