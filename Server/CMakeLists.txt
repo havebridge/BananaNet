@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.27.7)
 
 project(server)
 
-set(SOURCES src/server.cpp src/main.cpp)
+set(SOURCES src/server.cpp src/main.cpp src/logger.cpp)
 
 add_executable(server ${SOURCES})
 
