@@ -7,6 +7,7 @@
 #include <ctime>
 
 #include "../../Core/Core.h"
+#include "thread_pool.h"
 #include "logger.h"
 
 #define	MAX_NUM_CLIENTS 2
