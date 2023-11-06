@@ -94,5 +94,16 @@ namespace Core
 		template<typename F, typename... Args>
 		void AddJob(const F& job, const Args&... args) { AddJob([job, args...]{ job(args...); }); }
 
+		void Join()
+		{
+			for (auto& thread : threads)
+			{
+				if (thread.joinable())
+				{
+					thread.join();
+				}
+			}
+		}
+
 	};
 }

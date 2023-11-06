@@ -17,10 +17,26 @@ namespace UDPChat
 		server_info{ 0 },
 		server_info_lenght(sizeof(server_info)),
 		recieved_message(0),
-		first_client_info{ 0 },
-		second_client_info{ 0 },
-		is_first_client_connected(false),
-		is_second_client_connected(false) {}
+		running(false) {}
+	//first_client_info{ 0 },
+	//second_client_info{ 0 },
+	//is_first_client_connected(false),
+	//is_second_client_connected(false) {}
+
+	std::string Server::Client::GetHost() const
+	{
+		uint32_t ip = client_info.sin_addr.s_addr;
+
+		return std::string() + std::to_string(int(reinterpret_cast<char*>(&ip)[0])) + '.' +
+			std::to_string(int(reinterpret_cast<char*>(&ip)[1])) + '.' +
+			std::to_string(int(reinterpret_cast<char*>(&ip)[2])) + '.' +
+			std::to_string(int(reinterpret_cast<char*>(&ip)[3]));
+	}
+
+	std::string Server::Client::GetPort() const
+	{
+		return std::to_string(client_info.sin_port);
+	}
 
 	bool Server::Init()
 	{
@@ -31,7 +47,7 @@ namespace UDPChat
 			return false;
 		}
 
-		if ((server_socket = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP)) == INVALID_SOCKET)
+		if ((server_socket = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP)) == INVALID_SOCKET)
 		{
 			HN_ERROR("socket() failed");
 			HN_ERROR("WSA Error: {0}", WSAGetLastError());
@@ -69,11 +85,22 @@ namespace UDPChat
 			return false;
 		}
 
+		if (listen(server_socket, SOMAXCONN) == SOCKET_ERROR)
+		{
+			HN_ERROR("listen() failed");
+			HN_ERROR("WSA Error: {0}", WSAGetLastError());
+			return false;
+		}
+
+		Core::Log::Init();
+
+		thread_pool.AddJob(std::bind(&Server::ClientsHandler, this));
+		//thread_pool.AddJob(std::bind(&Server::ProcessMessage, this));
+
+#if 0
 		BOOL bNewBehavior = FALSE;
 		DWORD dwBytesReturned = 0;
 		WSAIoctl(server_socket, SIO_UDP_CONNRESET, &bNewBehavior, sizeof bNewBehavior, NULL, 0, &dwBytesReturned, NULL, NULL);
-
-		Core::Log::Init();
 
 		client_handler_file.open("../../../../handler/file_handler.txt");
 
@@ -86,6 +113,7 @@ namespace UDPChat
 		{
 			HN_ERROR("Unable to open the file");
 		}
+#endif
 
 		HN_INFO("UDP Server started at: {0}:{1}", inet_ntoa(server_info.sin_addr), htons(server_info.sin_port));
 
@@ -93,7 +121,7 @@ namespace UDPChat
 
 		return running;
 	}
-
+#if 0
 	bool Server::ProcessFile(Instance::type client_handler)
 	{
 		client_handler_file.open("../../../../handler/file_handler.txt");
@@ -110,29 +138,46 @@ namespace UDPChat
 			return false;
 		}
 	}
+#endif
 
 	void Server::ClientsHandler()
 	{
-		/*if (recvfrom(server_socket, (char*)(&is_first_client_connected), sizeof(bool), 0, (sockaddr*)&server_info, &server_info_lenght) <= 0)
+		std::vector<char> recieved_login;
+		std::vector<char> recieved_password;
+		int login_lenght;
+		int password_lenght;
+
+		struct sockaddr_in client_info;
+		int client_info_lenght = sizeof(client_info);
+		SOCKET client_socket = accept(server_socket, (sockaddr*)&client_info, &client_info_lenght);
+
+		if (client_socket == INVALID_SOCKET)
 		{
-			HN_ERROR("recvfom(is_first_client_connected) is failed");
+			HN_ERROR("accept() failed");
 			HN_ERROR("WSA Error: {0}", WSAGetLastError());
 			return;
-		}*/
+		}
 
-		//while (running)
-		//{
-		//	// TODO(): recive packet with encrypted login, password and ip
-		//	// set to client and add to server
+		/*if (recv(server_socket, (char*)&login_lenght, sizeof(int), 0) <= 0)
+		{
+			HN_ERROR("recv(login_lenght) failed");
+			HN_ERROR("WSA Error: {0}", WSAGetLastError());
+		}
 
-		//	std::unique_lock<std::mutex> client_lock(client_handler);
+		recieved_login.resize(login_lenght, 0x0);*/
 
-		//	cv.wait(client_lock, [this] {
-		//		return is_accession;
-		//		});
+		std::unique_ptr<Client> client(new Client(client_info, client_socket));
+		client_handler.lock();
+		HN_INFO("IP: {0} PORT: {1}", client->GetHost(), client->GetPort());
+		clients.emplace_back(std::move(client));
+		client_handler.unlock();
 
-		//	//std::unique_ptr<Client> client = new Client()
-		//}
+		if (running)
+		{
+			thread_pool.AddJob(std::bind(&Server::ClientsHandler, this));
+		}
+	}
+#if 0
 		while (running)
 		{
 			if (is_first_client_connected == false)
@@ -205,8 +250,9 @@ namespace UDPChat
 			}
 		}
 	}
+#endif
 
-
+#if 0
 	void Server::ProcessMessage()
 	{
 		while (true)
@@ -306,11 +352,12 @@ namespace UDPChat
 			delete[] recieved_message;
 		}
 	}
+#endif
 
 	void Server::Start()
 	{
-		connect_thread = (std::thread(&Server::ClientsHandler, this));
-		message_thread = (std::thread(&Server::ProcessMessage, this));
+		Init();
+
 		/*while (is_first_client_connected == false || is_second_client_connected == false)
 		{
 			ClientsHandler();
@@ -325,8 +372,7 @@ namespace UDPChat
 
 	void Server::Stop()
 	{
-		connect_thread.join();
-		message_thread.join();
+		thread_pool.Join();
 		closesocket(server_socket);
 	}
 

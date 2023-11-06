@@ -19,21 +19,37 @@ namespace UDPChat
 	private:
 		struct Client
 		{
+			//friend class Server;
+
 			std::string login;
 			std::string password;
 
-			struct sockaddr_in info;
-			bool is_connected;
+			struct sockaddr_in client_info;
+			SOCKET client_socket;
+			bool is_connected = true;
 
-			Client(const std::string& login, const std::string& password, const struct sockaddr_in info)
+			//std::mutex client_handler;
+
+			std::string GetHost() const;
+			std::string GetPort() const;
+
+			Client(struct sockaddr_in client_info, SOCKET client_socket)
 				:
-				login(login),
-				password(password),
-				info(info),
-				is_connected(true) {}
+				client_info(client_info),
+				client_socket(client_socket) {}
 
-			~Client() = default;
+			~Client()
+			{
+				if (client_socket == INVALID_SOCKET)
+				{
+					return;
+				}
+
+				client_socket = INVALID_SOCKET;
+				closesocket(client_socket);
+			}
 		};
+
 	private:
 		WSAData wsa;
 
@@ -43,12 +59,8 @@ namespace UDPChat
 
 		struct sockaddr_in server_info;
 		int server_info_lenght;
-		std::thread connect_thread;
-		std::thread message_thread;
-		std::mutex message_mutex;
 		std::condition_variable message_cv;
 		bool running;
-		bool is_accession;
 
 		char* recieved_message;
 		int recieved_message_size;
@@ -56,23 +68,20 @@ namespace UDPChat
 		std::string send_message;
 		int send_message_size;
 
-		struct sockaddr_in first_client_info;
-		struct sockaddr_in second_client_info;
-		struct sockaddr_in in;
-
-		bool is_first_client_connected;
-		bool is_second_client_connected;
-
-		std::ofstream client_handler_file;	
+		struct sockaddr_in in;	
 
 		std::vector<std::unique_ptr<Client>> clients;
 		std::mutex client_handler;
 		std::condition_variable cv;
 
+		Core::ThreadPool thread_pool;
+		std::mutex message_mutex;
+
 	private:
 		void ClientsHandler();
 		void ProcessMessage();
 		bool ProcessFile(Instance::type client_handler);
+		void JoinLoop() { thread_pool.Join(); }
 
 	public:
 		explicit Server(std::string ip, int port) noexcept;
