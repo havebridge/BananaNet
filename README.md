@@ -1,2 +1,2 @@
-# hnet(UDP chat)
+# hnet(TCP Multithreaded Chat)
 -----------
