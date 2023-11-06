@@ -12,7 +12,6 @@ namespace UDPChat
 		client_socket(INVALID_SOCKET),
 		server_info{ 0 },
 		server_info_lenght(sizeof(server_info)),
-		client_local_ip(NULL),
 		client_info{ 0 },
 		client_info_lenght(sizeof(client_info)),
 		is_connected(false),
@@ -28,7 +27,7 @@ namespace UDPChat
 			return false;
 		}
 
-		if ((client_socket = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP)) == INVALID_SOCKET)
+		if ((client_socket = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP)) == INVALID_SOCKET)
 		{
 			std::cout << WSAGetLastError() << '\n';
 			perror("socket");
@@ -44,11 +43,18 @@ namespace UDPChat
 			return false;
 		}
 
-		server_info.sin_family = AF_INET;
-		server_info.sin_port = htons(port);
-		server_info.sin_addr.S_un.S_addr = inet_addr(ip.c_str());
+		client_info.sin_family = PF_INET;
+		client_info.sin_port = htons(port);
+		client_info.sin_addr.S_un.S_addr = inet_addr(ip.c_str());
 
 		ZeroMemory(server_info.sin_zero, 8);
+
+		if (connect(client_socket, (const sockaddr*)&client_info, client_info_lenght) == INVALID_SOCKET)
+		{
+			std::cout << WSAGetLastError() << '\n';
+			perror("client connect");
+			return false;
+		}
 
 		is_connected = true;
 
@@ -71,6 +77,7 @@ namespace UDPChat
 		client_external_ip = std::string(buffer, read);
 	}
 
+#if 0
 	bool Client::ProcessHandlerFile(const char* file_name)
 	{
 		client_handler_file.open(file_name);
@@ -98,11 +105,11 @@ namespace UDPChat
 	{
 		GetClientExternalIp();
 
-		//std::cout << "Enter the login: ";
-		//std::cin >> login;
+		std::cout << "Enter the login: ";
+		std::cin >> login;
 
-		//std::cout << "Enter the password: ";
-		//std::cin >> password;
+		std::cout << "Enter the password: ";
+		std::cin >> password;
 
 		if (sendto(client_socket, (char*)&is_connected, sizeof(bool), 0, (const sockaddr*)&server_info, server_info_lenght) <= 0)
 		{
@@ -120,7 +127,7 @@ namespace UDPChat
 			return false;
 		}
 
-	/*	if (sendto(client_socket, login.c_str(), login.size(), 0, (const sockaddr*)&server_info, server_info_lenght) <= 0)
+		if (sendto(client_socket, login.c_str(), login.size(), 0, (const sockaddr*)&server_info, server_info_lenght) <= 0)
 		{
 			std::cout << WSAGetLastError() << '\n';
 			perror("sendto login");
@@ -132,7 +139,7 @@ namespace UDPChat
 			std::cout << WSAGetLastError() << '\n';
 			perror("sendto password");
 			return false;
-		}*/
+		}
 
 		client_info_lenght = sizeof(client_info);
 
@@ -216,7 +223,7 @@ namespace UDPChat
 			delete[] recieve_message;
 		}
 	}
-
+#endif
 	void Client::Disconnect()
 	{
 		std::cout << "Disconnect\n";
@@ -226,23 +233,25 @@ namespace UDPChat
 
 	void Client::Run()
 	{
-		BOOL bNewBehavior = FALSE;
-		DWORD dwBytesReturned = 0;
-		WSAIoctl(client_socket, SIO_UDP_CONNRESET, &bNewBehavior, sizeof bNewBehavior, NULL, 0, &dwBytesReturned, NULL, NULL);
 
-		SendClientInfo();
 
-		recieve_thread = (std::thread(&Client::RecieveData, this));
+		//BOOL bNewBehavior = FALSE;
+		//DWORD dwBytesReturned = 0;
+		//WSAIoctl(client_socket, SIO_UDP_CONNRESET, &bNewBehavior, sizeof bNewBehavior, NULL, 0, &dwBytesReturned, NULL, NULL);
 
-		while (is_connected)
-		{
-			SendData();
-		}
+		//SendClientInfo();
+
+		//recieve_thread = (std::thread(&Client::RecieveData, this));
+
+		//while (is_connected)
+		//{
+			//SendData();
+		//}
 	}
 
 	Client::~Client()
 	{
-		recieve_thread.join();
+		//recieve_thread.join();
 		closesocket(client_socket);
 		WSACleanup();
 	}

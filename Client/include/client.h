@@ -47,7 +47,7 @@ namespace UDPChat
 	private:
 		void GetClientExternalIp();
 		bool SendClientInfo();
-		bool ProcessHandlerFile(const char* file_name);
+		//bool ProcessHandlerFile(const char* file_name);
 		void SendData();
 		void RecieveData();
 
