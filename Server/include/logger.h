@@ -12,8 +12,8 @@ namespace Core
 		static std::shared_ptr<spdlog::logger> s_CoreLogger;
 		static std::shared_ptr<spdlog::logger> s_ClientLogger;
 	public:
-		Log();
-		~Log();
+		Log() = default;
+		~Log() = default;
 
 	public:
 		static void Init();
