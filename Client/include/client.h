@@ -16,6 +16,13 @@ namespace UDPChat
 	class Client
 	{
 	private:
+		/* I'm not sure if I need it yet
+		PIP_ADAPTER_INFO client_local_ip;*/
+
+		/* MySQL is the way
+		Instance::type client_type;
+		std::ifstream client_handler_file; */
+
 		WSAData wsa;
 
 		SOCKET client_socket;
@@ -23,30 +30,20 @@ namespace UDPChat
 		struct sockaddr_in server_info;
 		int server_info_lenght;
 
-		PIP_ADAPTER_INFO client_local_ip;
 		std::string client_external_ip;
 		struct sockaddr_in client_info;
 		int client_info_lenght;
+
 		std::string login;
 		std::string password;
-
 		std::string send_message;
+		std::string recieved_message;
 		int send_message_size;
+		int recieved_message_size;
+
 		bool is_connected = false;
-		bool is_send_info = false;
-
-		char* recieve_message;
-		int recieve_message_size;
-		std::thread recieve_thread;
-		std::mutex recieve_mutex;
-		std::condition_variable cv;
-
-		Instance::type client_type;
-		std::ifstream client_handler_file;
-
 	private:
 		void GetClientExternalIp();
-		bool SendClientInfo();
 		//bool ProcessHandlerFile(const char* file_name);
 		void SendData();
 		void RecieveData();

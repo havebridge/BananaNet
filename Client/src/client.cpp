@@ -15,7 +15,7 @@ namespace UDPChat
 		client_info{ 0 },
 		client_info_lenght(sizeof(client_info)),
 		is_connected(false),
-		recieve_message_size(0) {}
+		recieved_message_size(0) {}
 
 
 	bool Client::Connect(std::string ip, int port)
@@ -55,6 +55,10 @@ namespace UDPChat
 			perror("client connect");
 			return false;
 		}
+
+		GetClientExternalIp();
+		int client_port = getsockname(client_socket, (sockaddr*)&client_info, &client_info_lenght);
+		std::cout << "Client connected\n" << "external ip: " << client_external_ip << " port: " << client_port << '\n';
 
 		is_connected = true;
 

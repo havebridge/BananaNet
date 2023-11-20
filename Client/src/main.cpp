@@ -9,5 +9,6 @@ int main(int argc, char** argv)
 	UDPChat::Client client;
 	client.Connect("127.0.0.1", 8888);
 
+	std::cin.get();
 	return 0;
 }
