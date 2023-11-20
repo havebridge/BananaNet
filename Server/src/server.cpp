@@ -168,7 +168,7 @@ namespace UDPChat
 
 		std::unique_ptr<Client> client(new Client(client_info, client_socket));
 		client_handler.lock();
-		HN_INFO("IP: {0} PORT: {1}", client->GetHost(), client->GetPort());
+		HN_INFO("Client connected IP: {0} PORT: {1}", client->GetHost(), client->GetPort());
 		clients.emplace_back(std::move(client));
 		client_handler.unlock();
 

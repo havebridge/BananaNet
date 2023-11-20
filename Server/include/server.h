@@ -10,8 +10,6 @@
 #include "thread_pool.h"
 #include "logger.h"
 
-#define	MAX_NUM_CLIENTS 2
-
 namespace UDPChat
 {
 	class Server
@@ -59,16 +57,13 @@ namespace UDPChat
 
 		struct sockaddr_in server_info;
 		int server_info_lenght;
-		std::condition_variable message_cv;
+		//std::condition_variable message_cv;
 		bool running;
 
-		char* recieved_message;
-		int recieved_message_size;
-
 		std::string send_message;
+		std::string recieved_message;
 		int send_message_size;
-
-		struct sockaddr_in in;	
+		int recieved_message_size;
 
 		std::vector<std::unique_ptr<Client>> clients;
 		std::mutex client_handler;
@@ -78,6 +73,7 @@ namespace UDPChat
 		std::mutex message_mutex;
 
 	private:
+
 		void ClientsHandler();
 		void ProcessMessage();
 		bool ProcessFile(Instance::type client_handler);

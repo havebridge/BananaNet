@@ -11,7 +11,7 @@ int main(int argc, char** argv)
 	SetConsoleOutputCP(1251);
 
 	UDPChat::Server server("127.0.0.1", 8888);
-	Core::ChatDB chat_db;
+	//Core::ChatDB chat_db;
 
 	server.Start();
 
