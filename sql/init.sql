@@ -21,7 +21,6 @@ CREATE  TABLE IF NOT EXISTS `hnet`.`chat_user` (
   `login` VARCHAR(20) NOT NULL ,
   `password` VARCHAR(20) NOT NULL ,
   `ip` VARCHAR(15) NOT NULL ,
-  `port` int NOT NULL ,
   `registered_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL ,
   `last_visited_at` TIMESTAMP NOT NULL ,
   PRIMARY KEY (`id`) )
