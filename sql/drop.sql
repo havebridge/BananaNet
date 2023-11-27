@@ -4,4 +4,4 @@ drop table if exists chat;
 drop table if exists chat_line;
 drop table if exists chat_user;
 
-SET FOREIGN_KEY_CHECKS = 1;
+set FOREIGN_KEY_CHECKS = 1;
