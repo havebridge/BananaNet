@@ -12,8 +12,14 @@ namespace Core
 		MYSQL_ROW row;
 		MYSQL_RES* res;
 		int qstate;
+
 	public:
-		ChatDB();
+		ChatDB() = default;
 		~ChatDB() = default;
+
+	public:
+		void InsertUser();
+		void DeleteUser();
+		void SearchUser();
 	};
 }

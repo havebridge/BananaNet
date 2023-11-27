@@ -17,8 +17,6 @@ namespace UDPChat
 	private:
 		struct Client
 		{
-			//friend class Server;
-
 			std::string login;
 			std::string password;
 
@@ -26,7 +24,7 @@ namespace UDPChat
 			SOCKET client_socket;
 			bool is_connected = true;
 
-			//std::mutex client_handler;
+			std::mutex client_handler;
 
 			std::string GetHost() const;
 			std::string GetPort() const;
@@ -38,6 +36,8 @@ namespace UDPChat
 
 			~Client()
 			{
+				is_connected = false;
+
 				if (client_socket == INVALID_SOCKET)
 				{
 					return;
@@ -52,12 +52,12 @@ namespace UDPChat
 		WSAData wsa;
 
 		SOCKET server_socket;
-		int port;
 		std::string ip;
+		int port;
 
 		struct sockaddr_in server_info;
 		int server_info_lenght;
-		//std::condition_variable message_cv;
+
 		bool running;
 
 		std::string send_message;
@@ -66,17 +66,14 @@ namespace UDPChat
 		int recieved_message_size;
 
 		std::vector<std::unique_ptr<Client>> clients;
-		std::mutex client_handler;
+		std::mutex client_mutex;
 		std::condition_variable cv;
 
 		Core::ThreadPool thread_pool;
-		std::mutex message_mutex;
 
 	private:
-
 		void ClientsHandler();
-		void ProcessMessage();
-		bool ProcessFile(Instance::type client_handler);
+		void ProcessData();
 		void JoinLoop() { thread_pool.Join(); }
 
 	public:

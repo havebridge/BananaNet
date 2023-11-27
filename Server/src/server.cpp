@@ -4,7 +4,6 @@
 
 #define SIO_UDP_CONNRESET _WSAIOW(IOC_VENDOR, 12)
 
-using namespace std::chrono_literals;
 
 namespace UDPChat
 {
@@ -16,12 +15,7 @@ namespace UDPChat
 		port(port),
 		server_info{ 0 },
 		server_info_lenght(sizeof(server_info)),
-		recieved_message(0),
 		running(false) {}
-	//first_client_info{ 0 },
-	//second_client_info{ 0 },
-	//is_first_client_connected(false),
-	//is_second_client_connected(false) {}
 
 	std::string Server::Client::GetHost() const
 	{
@@ -40,6 +34,8 @@ namespace UDPChat
 
 	bool Server::Init()
 	{
+		Core::Log::Init();
+
 		if ((WSAStartup(MAKEWORD(2, 2), &wsa)) != 0)
 		{
 			HN_ERROR("WSAStartup() failed");
@@ -92,27 +88,13 @@ namespace UDPChat
 			return false;
 		}
 
-		Core::Log::Init();
-
 		thread_pool.AddJob(std::bind(&Server::ClientsHandler, this));
-		//thread_pool.AddJob(std::bind(&Server::ProcessMessage, this));
+		//thread_pool.AddJob(std::bind(&Server::ProcessData, this));
 
 #if 0
 		BOOL bNewBehavior = FALSE;
 		DWORD dwBytesReturned = 0;
 		WSAIoctl(server_socket, SIO_UDP_CONNRESET, &bNewBehavior, sizeof bNewBehavior, NULL, 0, &dwBytesReturned, NULL, NULL);
-
-		client_handler_file.open("../../../../handler/file_handler.txt");
-
-		if (client_handler_file.is_open())
-		{
-			client_handler_file << "0";
-			client_handler_file.close();
-		}
-		else
-		{
-			HN_ERROR("Unable to open the file");
-		}
 #endif
 
 		HN_INFO("UDP Server started at: {0}:{1}", inet_ntoa(server_info.sin_addr), htons(server_info.sin_port));
@@ -121,24 +103,6 @@ namespace UDPChat
 
 		return running;
 	}
-#if 0
-	bool Server::ProcessFile(Instance::type client_handler)
-	{
-		client_handler_file.open("../../../../handler/file_handler.txt");
-
-		if (client_handler_file.is_open())
-		{
-			client_handler_file << static_cast<int>(client_handler);
-			client_handler_file.close();
-			return true;
-		}
-		else
-		{
-			HN_ERROR("Unable to open the file");
-			return false;
-		}
-	}
-#endif
 
 	void Server::ClientsHandler()
 	{
@@ -158,25 +122,47 @@ namespace UDPChat
 			return;
 		}
 
-		/*if (recv(server_socket, (char*)&login_lenght, sizeof(int), 0) <= 0)
-		{
-			HN_ERROR("recv(login_lenght) failed");
-			HN_ERROR("WSA Error: {0}", WSAGetLastError());
-		}
-
-		recieved_login.resize(login_lenght, 0x0);*/
-
 		std::unique_ptr<Client> client(new Client(client_info, client_socket));
-		client_handler.lock();
+		client_mutex.lock();
 		HN_INFO("Client connected IP: {0} PORT: {1}", client->GetHost(), client->GetPort());
 		clients.emplace_back(std::move(client));
-		client_handler.unlock();
+		client_mutex.unlock();
 
 		if (running)
 		{
 			thread_pool.AddJob(std::bind(&Server::ClientsHandler, this));
 		}
 	}
+
+	void Server::ProcessData()
+	{
+		{
+			std::lock_guard<std::mutex> client_lock(client_mutex);
+			for (auto it = clients.begin(), end = clients.end(); it != end; ++it)
+			{
+				auto& client = *it;
+				if (client)
+				{
+					std::cout << "OK\n";
+					//TODO(): process data
+				}
+				else if (client->is_connected == false)
+				{
+					client->client_handler.lock();
+					HN_INFO("Client disconnected IP: {0} PORT: {1}", client->GetHost(), client->GetPort());
+					client->client_handler.unlock();
+					client.release();
+					clients.erase(it);
+				}
+			}
+		}
+		if (running)
+		{
+			thread_pool.AddJob(std::bind(&Server::ProcessData, this));
+		}
+	}
+
+
 #if 0
 		while (running)
 		{

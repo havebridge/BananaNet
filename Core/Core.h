@@ -15,16 +15,4 @@
 
 #define INET_ADDRSTRLEN 10
 #define SIO_UDP_CONNRESET _WSAIOW(IOC_VENDOR, 12)
-
-#define DEBUG 0
-
-namespace Instance
-{
-	enum class type : uint8_t
-	{
-		first_client_handler = 0,
-		second_client_handler
-	};
-
-	inline type client_handler;
-}
+#define MAX_LENGTH 256

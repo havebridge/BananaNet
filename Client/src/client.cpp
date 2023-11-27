@@ -10,11 +10,10 @@ namespace UDPChat
 		:
 		wsa{ 0 },
 		client_socket(INVALID_SOCKET),
-		server_info{ 0 },
-		server_info_lenght(sizeof(server_info)),
 		client_info{ 0 },
 		client_info_lenght(sizeof(client_info)),
-		is_connected(false),
+		server_info{ 0 },
+		server_info_lenght(sizeof(server_info)),
 		recieved_message_size(0) {}
 
 
@@ -34,38 +33,44 @@ namespace UDPChat
 			return false;
 		}
 
-		char yes = '1';
+		char mode = '1';
 
-		if ((setsockopt(client_socket, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int)) == SOCKET_ERROR))
+		if ((setsockopt(client_socket, SOL_SOCKET, SO_REUSEADDR, &mode, sizeof(int)) == SOCKET_ERROR))
 		{
 			std::cout << WSAGetLastError() << '\n';
 			perror("setsockport");
 			return false;
 		}
 
-		client_info.sin_family = PF_INET;
-		client_info.sin_port = htons(port);
-		client_info.sin_addr.S_un.S_addr = inet_addr(ip.c_str());
+		server_info.sin_family = PF_INET;
+		server_info.sin_port = htons(port);
+		server_info.sin_addr.S_un.S_addr = inet_addr(ip.c_str());
 
 		ZeroMemory(server_info.sin_zero, 8);
 
-		if (connect(client_socket, (const sockaddr*)&client_info, client_info_lenght) == INVALID_SOCKET)
+		if (connect(client_socket, (const sockaddr*)&server_info, server_info_lenght) == INVALID_SOCKET)
 		{
 			std::cout << WSAGetLastError() << '\n';
 			perror("client connect");
 			return false;
 		}
 
+		if (getsockname(client_socket, (sockaddr*)&client_info, &client_info_lenght) == -1)
+		{
+			std::cout << WSAGetLastError() << '\n';
+			perror("getsockname");
+			return false;
+		}
+
 		GetClientExternalIp();
-		int client_port = getsockname(client_socket, (sockaddr*)&client_info, &client_info_lenght);
-		std::cout << "Client connected\n" << "external ip: " << client_external_ip << " port: " << client_port << '\n';
+		
+		std::cout << "Client info\n";
+		std::cout << "external ip: " << client_external_ip << " port: " << client_info.sin_port << '\n';
 
 		is_connected = true;
 
 		return is_connected;
 	}
-
-	//TODO(hasbridge): get internal ip function
 
 	void Client::GetClientExternalIp()
 	{
@@ -82,88 +87,6 @@ namespace UDPChat
 	}
 
 #if 0
-	bool Client::ProcessHandlerFile(const char* file_name)
-	{
-		client_handler_file.open(file_name);
-
-		if (client_handler_file.is_open())
-		{
-			int res;
-			client_handler_file >> res;
-
-			client_type = static_cast<Instance::type>(res);
-
-			std::cout << res;
-
-			client_handler_file.close();
-			return true;
-		}
-		else
-		{
-			std::cerr << "Unable to open the file\n";
-			return false;
-		}
-	}
-
-	bool Client::SendClientInfo()
-	{
-		GetClientExternalIp();
-
-		std::cout << "Enter the login: ";
-		std::cin >> login;
-
-		std::cout << "Enter the password: ";
-		std::cin >> password;
-
-		if (sendto(client_socket, (char*)&is_connected, sizeof(bool), 0, (const sockaddr*)&server_info, server_info_lenght) <= 0)
-		{
-			std::cout << WSAGetLastError() << '\n';
-			perror("sendto first client ip");
-			return false;
-		}
-
-		char send_info_to_server = '1';
-
-		if (sendto(client_socket, &send_info_to_server, sizeof(char), 0, (const sockaddr*)&server_info, server_info_lenght) <= 0)
-		{
-			std::cout << WSAGetLastError() << '\n';
-			perror("sendto char");
-			return false;
-		}
-
-		if (sendto(client_socket, login.c_str(), login.size(), 0, (const sockaddr*)&server_info, server_info_lenght) <= 0)
-		{
-			std::cout << WSAGetLastError() << '\n';
-			perror("sendto login");
-			return false;
-		}
-
-		if (sendto(client_socket, password.c_str(), password.size(), 0, (const sockaddr*)&server_info, server_info_lenght) <= 0)
-		{
-			std::cout << WSAGetLastError() << '\n';
-			perror("sendto password");
-			return false;
-		}
-
-		client_info_lenght = sizeof(client_info);
-
-		getsockname(client_socket, (sockaddr*)&client_info, &client_info_lenght);
-		client_info.sin_addr.s_addr = inet_addr(client_external_ip.c_str());
-
-		inet_pton(AF_INET, inet_ntoa(client_info.sin_addr), &(client_info.sin_addr));
-
-		printf("Client %s:%d is connected to UDP server %s:%d\n",
-			inet_ntoa(client_info.sin_addr), ntohs(client_info.sin_port),
-			inet_ntoa(server_info.sin_addr), ntohs(server_info.sin_port));
-
-		cv.notify_one();
-		ProcessHandlerFile("../handler/file_handler.txt");
-
-		is_send_info = true;
-
-		return is_send_info;
-	}
-
 	void Client::SendData()
 	{
 		std::cout << "Send message: ";
