@@ -63,9 +63,10 @@ namespace UDPChat
 		}
 
 		GetClientExternalIp();
-		
+		SendUserInfo();
+
 		std::cout << "Client info\n";
-		std::cout << "external ip: " << client_external_ip << " port: " << client_info.sin_port << '\n';
+		std::cout << "External ip: " << client_external_ip << " port: " << client_info.sin_port << '\n';
 
 		is_connected = true;
 
@@ -84,6 +85,71 @@ namespace UDPChat
 		InternetCloseHandle(net);
 
 		client_external_ip = std::string(buffer, read);
+	}
+
+	void Client::SendUserInfo()
+	{
+		std::cout << "sign up(1) or sign in(2)\n";
+		int choice = 0;
+		bool is_good = false;
+
+		while (!is_good)
+		{
+			std::cin >> choice;
+			switch (choice)
+			{
+			case 1:
+			{
+				std::cout << "SIGN UP\n";
+
+				std::cout << "username: ";
+				std::cin >> uinfo.username;
+
+				std::cout << "login: ";
+				std::cin >> uinfo.login;
+
+				std::cout << "password: ";
+				std::cin >> uinfo.password;
+				std::cout << '\n';
+
+				is_good = true;
+			} break;
+
+			case 2:
+			{
+				std::cout << "SIGN IN\n";
+
+				std::cout << "login: ";
+				std::cin >> uinfo.login;
+
+				std::cout << "password: ";
+				std::cin >> uinfo.password;
+				std::cout << '\n';
+
+				is_good = true;
+			} break;
+
+			default:
+			{
+				choice = 0;
+				std::cout << "enter 1(sign up) or 2(sign in): ";
+			} break;
+			}
+		}
+
+		std::cout << "username: " << uinfo.username << '\n';
+		std::cout << "login: " << uinfo.login << '\n';
+		std::cout << "password: " << uinfo.password << '\n';
+
+		/*char* buffer = new char[sizeof(Client::user_info)];
+		memcpy(buffer, &uinfo, sizeof(Client::user_info));
+
+		if (send(client_socket, (char*)&uinfo, sizeof(Client::user_info), 0) <= 0)
+		{
+			std::cout << WSAGetLastError() << '\n';
+			perror("send uinfo");
+			return;
+		}*/
 	}
 
 #if 0

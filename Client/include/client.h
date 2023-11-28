@@ -28,16 +28,34 @@ namespace UDPChat
 
 		std::string client_external_ip;
 
-		std::string login;
-		std::string password;
 		std::string send_message;
 		std::string recieved_message;
 		int send_message_size;
 		int recieved_message_size;
 
 		bool is_connected = false;
+
+	private:
+		enum class Connection : int8_t
+		{
+			SIGN_UP = 1,
+			SIGN_IN
+		};
+
+		struct user_info
+		{
+			char username[20];
+			char login[20];
+			char password[20];
+
+			Connection type;
+		};
+
+		struct user_info uinfo;
+
 	private:
 		void GetClientExternalIp();
+		void SendUserInfo();
 		void SendData();
 		void RecieveData();
 
