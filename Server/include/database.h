@@ -3,23 +3,25 @@
 #include <iostream>
 #include <string>
 #include <mysql.h>
+
 namespace Core
 {
 	class ChatDB
 	{
 	private:
-		MYSQL* connect = mysql_init(0);
+		MYSQL mysql;
+		MYSQL* connection;
+		MYSQL_RES res;
 		MYSQL_ROW row;
-		MYSQL_RES* res;
-		int qstate;
+		int qstate = 0;
 
 	public:
-		ChatDB() = default;
+		ChatDB() noexcept;
 		~ChatDB() = default;
 
 	public:
-		void InsertUser();
-		void DeleteUser();
-		void SearchUser();
+		bool InsertUserTo();
+		void DeleteUserFrom();
+		void SearchUserIn();
 	};
 }

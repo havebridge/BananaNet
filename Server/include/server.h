@@ -7,47 +7,16 @@
 #include <ctime>
 
 #include "../../Core/Core.h"
+
+#include "database.h"
 #include "thread_pool.h"
 #include "logger.h"
+#include "client_info.h"
 
-namespace UDPChat
+namespace TCPChat
 {
 	class Server
 	{
-	private:
-		struct Client
-		{
-			std::string login;
-			std::string password;
-
-			struct sockaddr_in client_info;
-			SOCKET client_socket;
-			bool is_connected = true;
-
-			std::mutex client_handler;
-
-			std::string GetHost() const;
-			std::string GetPort() const;
-
-			Client(struct sockaddr_in client_info, SOCKET client_socket)
-				:
-				client_info(client_info),
-				client_socket(client_socket) {}
-
-			~Client()
-			{
-				is_connected = false;
-
-				if (client_socket == INVALID_SOCKET)
-				{
-					return;
-				}
-
-				client_socket = INVALID_SOCKET;
-				closesocket(client_socket);
-			}
-		};
-
 	private:
 		WSAData wsa;
 
@@ -71,8 +40,13 @@ namespace UDPChat
 
 		Core::ThreadPool thread_pool;
 
+		Core::ChatDB db;
+
 	private:
-		void ClientsHandler();
+		void GetClientsInfo();
+		bool SearchForClient(Client::user_info* uinfo);
+		void ClientHandler();
+		void ClientInfoHandler();
 		void ProcessData();
 		void JoinLoop() { thread_pool.Join(); }
 

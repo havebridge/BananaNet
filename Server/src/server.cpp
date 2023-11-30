@@ -5,7 +5,7 @@
 #define SIO_UDP_CONNRESET _WSAIOW(IOC_VENDOR, 12)
 
 
-namespace UDPChat
+namespace TCPChat
 {
 	Server::Server(std::string ip, int port) noexcept
 		:
@@ -17,7 +17,7 @@ namespace UDPChat
 		server_info_lenght(sizeof(server_info)),
 		running(false) {}
 
-	std::string Server::Client::GetHost() const
+	std::string Client::GetHost() const
 	{
 		uint32_t ip = client_info.sin_addr.s_addr;
 
@@ -27,7 +27,7 @@ namespace UDPChat
 			std::to_string(int(reinterpret_cast<char*>(&ip)[3]));
 	}
 
-	std::string Server::Client::GetPort() const
+	std::string Client::GetPort() const
 	{
 		return std::to_string(client_info.sin_port);
 	}
@@ -71,7 +71,7 @@ namespace UDPChat
 		server_info.sin_family = AF_INET;
 		server_info.sin_port = htons(port);
 		server_info.sin_addr.s_addr = inet_addr(ip.c_str());
-
+		
 		ZeroMemory(server_info.sin_zero, 8);
 
 		if (bind(server_socket, (const sockaddr*)&server_info, server_info_lenght) == SOCKET_ERROR)
@@ -88,7 +88,7 @@ namespace UDPChat
 			return false;
 		}
 
-		thread_pool.AddJob(std::bind(&Server::ClientsHandler, this));
+		thread_pool.AddJob(std::bind(&Server::ClientHandler, this));
 		//thread_pool.AddJob(std::bind(&Server::ProcessData, this));
 
 #if 0
@@ -97,24 +97,20 @@ namespace UDPChat
 		WSAIoctl(server_socket, SIO_UDP_CONNRESET, &bNewBehavior, sizeof bNewBehavior, NULL, 0, &dwBytesReturned, NULL, NULL);
 #endif
 
-		HN_INFO("UDP Server started at: {0}:{1}", inet_ntoa(server_info.sin_addr), htons(server_info.sin_port));
+		HN_INFO("TCP Server started at: {0}:{1}", inet_ntoa(server_info.sin_addr), htons(server_info.sin_port));
 
 		running = true;
 
 		return running;
 	}
 
-	void Server::ClientsHandler()
+	void Server::ClientHandler()
 	{
-		std::vector<char> recieved_login;
-		std::vector<char> recieved_password;
-		int login_lenght;
-		int password_lenght;
-
 		struct sockaddr_in client_info;
 		int client_info_lenght = sizeof(client_info);
+		Client::user_info uinfo = {};
+		
 		SOCKET client_socket = accept(server_socket, (sockaddr*)&client_info, &client_info_lenght);
-
 		if (client_socket == INVALID_SOCKET)
 		{
 			HN_ERROR("accept() failed");
@@ -122,16 +118,87 @@ namespace UDPChat
 			return;
 		}
 
-		std::unique_ptr<Client> client(new Client(client_info, client_socket));
+		char* recieved_buffer = new char[sizeof(Client::user_info)];
+		if (recv(client_socket, recieved_buffer, sizeof(Client::user_info), 0) <= 0)
+		{
+			HN_ERROR("recv() user_info failed");
+			HN_ERROR("WSA Error: {0}", WSAGetLastError());
+			delete[] recieved_buffer;
+			return;
+		}
+
+		memcpy(&uinfo, recieved_buffer, sizeof(Client::user_info));
+
+		/*std::cout << "connection type: " << uinfo.type << '\n';
+		std::cout << "username: " << uinfo.username << '\n';
+		std::cout << "login: " << uinfo.login << '\n';
+		std::cout << "password: " << uinfo.password << '\n';
+		std::cout << "sizeof: " << sizeof(Client::user_info) << '\n';*/
+
+		//std::unique_ptr<Client> client;
+
+		switch (uinfo.type)
+		{
+		case Client::ConnectionType::SIGN_UP:
+		{
+			std::unique_ptr<Client> client(new Client(client_info, client_socket, uinfo));
+			client_mutex.lock();
+			HN_INFO("Client connected IP: {0} PORT: {1}", client->GetHost(), client->GetPort());
+			clients.emplace_back(std::move(client));
+			client_mutex.unlock();
+		} break;
+		case Client::ConnectionType::SIGN_IN:
+		{
+			if (SearchForClient(&uinfo))
+			{
+				HN_INFO("Client is found");
+			}
+			else
+			{
+				HN_INFO("Client is not found");
+			}
+		} break;
+		}
+
+		/*td::unique_ptr<Client> client(new Client(client_info, client_socket, uinfo));
 		client_mutex.lock();
 		HN_INFO("Client connected IP: {0} PORT: {1}", client->GetHost(), client->GetPort());
 		clients.emplace_back(std::move(client));
-		client_mutex.unlock();
+		client_mutex.unlock();*/
+
+		//db.InsertUserTo();
+
+		GetClientsInfo();
+
+		delete[] recieved_buffer;
 
 		if (running)
 		{
-			thread_pool.AddJob(std::bind(&Server::ClientsHandler, this));
+			thread_pool.AddJob(std::bind(&Server::ClientHandler, this));
 		}
+	}
+
+	void Server::GetClientsInfo()
+	{
+		HN_INFO("All Clients:");
+		for (const auto& client : clients)
+		{
+			HN_INFO("Client info IP: {0} PORT: {1} USERNAME: {2} LOGIN: {3} PASSWORD: {4}", client->GetHost(), client->GetPort(), 
+					client->uinfo.username, client->uinfo.login, client->uinfo.password);
+		}
+	}
+
+	bool Server::SearchForClient(Client::user_info* uinfo)
+	{
+		for (const auto& client : clients)
+		{
+			if (strcmp(client->uinfo.login, uinfo->login) == 0)
+			{
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	void Server::ProcessData()

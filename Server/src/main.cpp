@@ -1,6 +1,4 @@
 #include "../include/server.h"
-#include "../include/logger.h"
-//#include "../include/database.h"
 
 int main(int argc, char** argv)
 {
@@ -10,11 +8,12 @@ int main(int argc, char** argv)
 	SetConsoleCP(1251);
 	SetConsoleOutputCP(1251);
 
-	UDPChat::Server server("127.0.0.1", 8888);
-	//Core::ChatDB chat_db;
+	TCPChat::Server server("127.0.0.1", 8888);
 
 	server.Start();
 
 	server.Stop();	
+
+	system("pause");
 	return 0;
 }
