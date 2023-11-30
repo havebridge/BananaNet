@@ -4,7 +4,7 @@
 
 #define SIO_UDP_CONNRESET _WSAIOW(IOC_VENDOR, 12)
 
-namespace UDPChat
+namespace TCPChat
 {
 	Client::Client() noexcept
 		:
@@ -70,6 +70,8 @@ namespace UDPChat
 
 		is_connected = true;
 
+		
+
 		return is_connected;
 	}
 
@@ -90,15 +92,17 @@ namespace UDPChat
 	void Client::SendUserInfo()
 	{
 		std::cout << "sign up(1) or sign in(2)\n";
-		int choice = 0;
+		int i = 0;
 		bool is_good = false;
 
 		while (!is_good)
 		{
-			std::cin >> choice;
-			switch (choice)
+			std::cin >> i;
+			uinfo.type = static_cast<ConnectionType>(i);
+
+			switch (uinfo.type)
 			{
-			case 1:
+			case ConnectionType::SIGN_UP:
 			{
 				std::cout << "SIGN UP\n";
 
@@ -115,7 +119,7 @@ namespace UDPChat
 				is_good = true;
 			} break;
 
-			case 2:
+			case ConnectionType::SIGN_IN:
 			{
 				std::cout << "SIGN IN\n";
 
@@ -131,25 +135,30 @@ namespace UDPChat
 
 			default:
 			{
-				choice = 0;
+				i = 0;
 				std::cout << "enter 1(sign up) or 2(sign in): ";
 			} break;
 			}
 		}
 
+		std::cout << "connection type: " << uinfo.type << '\n';
 		std::cout << "username: " << uinfo.username << '\n';
 		std::cout << "login: " << uinfo.login << '\n';
 		std::cout << "password: " << uinfo.password << '\n';
+		std::cout << "sizeof: " << sizeof(Client::user_info) << '\n';
 
-		/*char* buffer = new char[sizeof(Client::user_info)];
-		memcpy(buffer, &uinfo, sizeof(Client::user_info));
+		char* send_buffer = new char[sizeof(Client::user_info)];
+		memcpy(send_buffer, &uinfo, sizeof(Client::user_info));
 
-		if (send(client_socket, (char*)&uinfo, sizeof(Client::user_info), 0) <= 0)
+		if (send(client_socket, send_buffer, sizeof(Client::user_info), 0) <= 0)
 		{
 			std::cout << WSAGetLastError() << '\n';
 			perror("send uinfo");
+			delete[] send_buffer;
 			return;
-		}*/
+		}
+		
+		delete[] send_buffer;
 	}
 
 #if 0

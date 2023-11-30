@@ -3,6 +3,7 @@
 #include <iostream>
 #include <string>
 #include <fstream>
+#include <vector>
 
 #include <thread>
 #include <mutex>
@@ -11,7 +12,7 @@
 #include "../../Core/Core.h"
 
 
-namespace UDPChat
+namespace TCPChat
 {
 	class Client
 	{
@@ -36,7 +37,7 @@ namespace UDPChat
 		bool is_connected = false;
 
 	private:
-		enum class Connection : int8_t
+		enum ConnectionType : int8_t
 		{
 			SIGN_UP = 1,
 			SIGN_IN
@@ -48,16 +49,30 @@ namespace UDPChat
 			char login[20];
 			char password[20];
 
-			Connection type;
+			ConnectionType type;
 		};
 
-		struct user_info uinfo;
+		user_info uinfo;
 
 	private:
 		void GetClientExternalIp();
 		void SendUserInfo();
 		void SendData();
 		void RecieveData();
+
+	public:
+		friend std::ostream& operator<<(std::ostream& stream, const ConnectionType cType)
+		{
+			std::string result;
+#define PRINT(a) result = #a;
+			switch (cType)
+			{
+			case SIGN_UP: PRINT(SIGN_UP); break;
+			case SIGN_IN: PRINT(SIGN_IN); break;
+			}
+
+			return stream << result;
+		}
 
 	public:
 		explicit Client() noexcept;
