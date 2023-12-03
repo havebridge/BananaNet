@@ -2,7 +2,10 @@
 
 #include <iostream>
 #include <string>
+#include <ctime>
 #include <mysql.h>
+
+#include "../include/client_info.h"
 
 namespace Core
 {
@@ -11,8 +14,7 @@ namespace Core
 	private:
 		MYSQL mysql;
 		MYSQL* connection;
-		MYSQL_RES res;
-		MYSQL_ROW row;
+		MYSQL_RES* res;
 		int qstate = 0;
 
 	public:
@@ -20,7 +22,7 @@ namespace Core
 		~ChatDB() = default;
 
 	public:
-		bool InsertUserTo();
+		bool InsertUserTo(TCPChat::Client::user_info* uinfo, struct sockaddr_in client_info);
 		void DeleteUserFrom();
 		void SearchUserIn();
 	};

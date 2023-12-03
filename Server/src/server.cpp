@@ -129,14 +129,6 @@ namespace TCPChat
 
 		memcpy(&uinfo, recieved_buffer, sizeof(Client::user_info));
 
-		/*std::cout << "connection type: " << uinfo.type << '\n';
-		std::cout << "username: " << uinfo.username << '\n';
-		std::cout << "login: " << uinfo.login << '\n';
-		std::cout << "password: " << uinfo.password << '\n';
-		std::cout << "sizeof: " << sizeof(Client::user_info) << '\n';*/
-
-		//std::unique_ptr<Client> client;
-
 		switch (uinfo.type)
 		{
 		case Client::ConnectionType::SIGN_UP:
@@ -144,6 +136,7 @@ namespace TCPChat
 			std::unique_ptr<Client> client(new Client(client_info, client_socket, uinfo));
 			client_mutex.lock();
 			HN_INFO("Client connected IP: {0} PORT: {1}", client->GetHost(), client->GetPort());
+			db.InsertUserTo(&uinfo, client_info);
 			clients.emplace_back(std::move(client));
 			client_mutex.unlock();
 		} break;
@@ -159,14 +152,6 @@ namespace TCPChat
 			}
 		} break;
 		}
-
-		/*td::unique_ptr<Client> client(new Client(client_info, client_socket, uinfo));
-		client_mutex.lock();
-		HN_INFO("Client connected IP: {0} PORT: {1}", client->GetHost(), client->GetPort());
-		clients.emplace_back(std::move(client));
-		client_mutex.unlock();*/
-
-		//db.InsertUserTo();
 
 		GetClientsInfo();
 

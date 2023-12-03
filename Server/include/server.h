@@ -1,13 +1,5 @@
 #pragma once
 
-#include <iostream>
-#include <string>
-#include <vector>
-#include <fstream>
-#include <ctime>
-
-#include "../../Core/Core.h"
-
 #include "database.h"
 #include "thread_pool.h"
 #include "logger.h"
@@ -46,7 +38,6 @@ namespace TCPChat
 		void GetClientsInfo();
 		bool SearchForClient(Client::user_info* uinfo);
 		void ClientHandler();
-		void ClientInfoHandler();
 		void ProcessData();
 		void JoinLoop() { thread_pool.Join(); }
 

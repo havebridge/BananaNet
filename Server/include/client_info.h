@@ -1,9 +1,8 @@
 #pragma once
 
 #include <iostream>
-
 #include <mutex>
-#include "../../Core/Core.h"
+
 
 namespace TCPChat
 {
