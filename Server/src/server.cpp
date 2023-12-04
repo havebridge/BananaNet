@@ -19,12 +19,7 @@ namespace TCPChat
 
 	std::string Client::GetHost() const
 	{
-		uint32_t ip = client_info.sin_addr.s_addr;
-
-		return std::string() + std::to_string(int(reinterpret_cast<char*>(&ip)[0])) + '.' +
-			std::to_string(int(reinterpret_cast<char*>(&ip)[1])) + '.' +
-			std::to_string(int(reinterpret_cast<char*>(&ip)[2])) + '.' +
-			std::to_string(int(reinterpret_cast<char*>(&ip)[3]));
+		return std::string(inet_ntoa(client_info.sin_addr));
 	}
 
 	std::string Client::GetPort() const
