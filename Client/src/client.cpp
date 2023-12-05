@@ -65,12 +65,9 @@ namespace TCPChat
 		GetClientExternalIp();
 		SendUserInfo();
 
-		std::cout << "Client info\n";
-		std::cout << "External ip: " << client_external_ip << " port: " << client_info.sin_port << '\n';
+		std::cout << std::format("Client info\nExternal ip: {} port: {}\n", client_external_ip, client_info.sin_port);
 
 		is_connected = true;
-
-		
 
 		return is_connected;
 	}
@@ -142,10 +139,10 @@ namespace TCPChat
 		}
 
 		std::cout << "connection type: " << uinfo.type << '\n';
-		std::cout << "username: " << uinfo.username << '\n';
-		std::cout << "login: " << uinfo.login << '\n';
-		std::cout << "password: " << uinfo.password << '\n';
-		std::cout << "sizeof: " << sizeof(Client::user_info) << '\n';
+		std::cout << std::format("username: {}\n", uinfo.username);
+		std::cout << std::format("login: {}\n", uinfo.login);
+		std::cout << std::format("password: {}\n", uinfo.password);
+		std::cout << std::format("sizeof: {}\n", sizeof(Client::user_info));
 
 		char* send_buffer = new char[sizeof(Client::user_info)];
 		memcpy(send_buffer, &uinfo, sizeof(Client::user_info));

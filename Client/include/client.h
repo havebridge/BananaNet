@@ -4,6 +4,7 @@
 #include <string>
 #include <fstream>
 #include <vector>
+#include <format>
 
 #include <thread>
 #include <mutex>
@@ -17,6 +18,7 @@ namespace TCPChat
 	class Client
 	{
 	private:
+
 		WSAData wsa;
 
 		SOCKET client_socket;

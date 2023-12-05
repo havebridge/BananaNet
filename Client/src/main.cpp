@@ -1,4 +1,4 @@
-#include "../include/client.h"
+﻿#include "../include/client.h"
 
 
 int main(int argc, char** argv)
@@ -6,9 +6,9 @@ int main(int argc, char** argv)
 	SetConsoleCP(1251);
 	SetConsoleOutputCP(1251);
 	
-	UDPChat::Client client;
+	TCPChat::Client client;
 	client.Connect("127.0.0.1", 8888);
 
-	std::cin.get();
+	system("pause");
 	return 0;
 }
