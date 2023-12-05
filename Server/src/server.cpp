@@ -131,7 +131,7 @@ namespace TCPChat
 			std::unique_ptr<Client> client(new Client(client_info, client_socket, uinfo));
 			client_mutex.lock();
 			HN_INFO("Client connected IP: {0} PORT: {1}", client->GetHost(), client->GetPort());
-			db.InsertUserTo(&uinfo, client_info);
+			db.InsertUser(&uinfo, client_info);
 			clients.emplace_back(std::move(client));
 			client_mutex.unlock();
 		} break;
@@ -139,6 +139,8 @@ namespace TCPChat
 		{
 			if (SearchForClient(&uinfo))
 			{
+				std::string login = std::string(uinfo.login);
+				db.UpdateUserInfo(std::move(login));
 				HN_INFO("Client is found");
 			}
 			else

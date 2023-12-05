@@ -14,7 +14,13 @@ namespace Core
 		}
 	}
 
-	bool ChatDB::InsertUserTo(TCPChat::Client::user_info* uinfo, struct sockaddr_in client_info)
+	ChatDB::~ChatDB() noexcept
+	{
+		mysql_free_result(res);
+		mysql_close(connection);
+	}
+
+	bool ChatDB::InsertUser(TCPChat::Client::user_info* uinfo, struct sockaddr_in client_info)
 	{
 		std::string query_string = "INSERT INTO chat_user (username, login, password, ip, last_visited_at) VALUE (";
 		query_string += "'" + std::string(uinfo->username) + "',";
@@ -29,9 +35,30 @@ namespace Core
 		if (qstate != 0)
 		{
 			std::cout << mysql_error(&mysql) << std::endl;
-			mysql_close(&mysql);
+			mysql_close(connection);
 			return false;
 		}
+
+		mysql_store_result(&mysql);
+
+		return true;
+	}
+
+	bool ChatDB::UpdateUserInfo(std::string login)
+	{
+		std::string query_string = "UPDATE chat_user SET last_visited_at = NOW() WHERE login = ";
+		query_string += "'" + login + "';";
+
+		qstate = mysql_query(&mysql, query_string.c_str());
+
+		if (qstate != 0)
+		{
+			std::cout << mysql_error(&mysql) << std::endl;
+			mysql_close(connection);
+			return false;
+		}
+
+		mysql_store_result(&mysql);
 
 		return true;
 	}

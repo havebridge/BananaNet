@@ -13,17 +13,17 @@ namespace Core
 	{
 	private:
 		MYSQL mysql;
-		MYSQL* connection;
-		MYSQL_RES* res;
+		MYSQL* connection = nullptr;
+		MYSQL_RES* res = nullptr;
 		int qstate = 0;
 
 	public:
 		ChatDB() noexcept;
-		~ChatDB() = default;
+		~ChatDB() noexcept;
 
 	public:
-		bool InsertUserTo(TCPChat::Client::user_info* uinfo, struct sockaddr_in client_info);
-		void DeleteUserFrom();
-		void SearchUserIn();
+		bool InsertUser(TCPChat::Client::user_info* uinfo, struct sockaddr_in client_info);
+		bool UpdateUserInfo(std::string login);
+		void DeleteUser();
 	};
 }
