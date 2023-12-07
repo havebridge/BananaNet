@@ -84,7 +84,7 @@ namespace TCPChat
 		}
 
 		thread_pool.AddJob(std::bind(&Server::ClientHandler, this));
-		//thread_pool.AddJob(std::bind(&Server::ProcessData, this));
+		thread_pool.AddJob(std::bind(&Server::ProcessData, this));
 
 #if 0
 		BOOL bNewBehavior = FALSE;
@@ -104,6 +104,7 @@ namespace TCPChat
 		struct sockaddr_in client_info;
 		int client_info_lenght = sizeof(client_info);
 		Client::user_info uinfo = {};
+		Client::users_info_dto uinfo_dto = {};
 		
 		SOCKET client_socket = accept(server_socket, (sockaddr*)&client_info, &client_info_lenght);
 		if (client_socket == INVALID_SOCKET)
@@ -134,14 +135,17 @@ namespace TCPChat
 			db.InsertUser(&uinfo, client_info);
 			clients.emplace_back(std::move(client));
 			client_mutex.unlock();
+			client_count++;
 		} break;
 		case Client::ConnectionType::SIGN_IN:
 		{
 			if (SearchForClient(&uinfo))
 			{
-				std::string login = std::string(uinfo.login);
-				db.UpdateUserInfo(std::move(login));
 				HN_INFO("Client is found");
+				//std::string login = std::string(uinfo.login);
+				db.UpdateUserInfo(std::string(uinfo.login));
+				db.GetUsers(std::string(uinfo.login), uinfo_dto, client_count);
+				//db.LoadMessageHistory();
 			}
 			else
 			{
@@ -174,7 +178,7 @@ namespace TCPChat
 	{
 		for (const auto& client : clients)
 		{
-			if (strcmp(client->uinfo.login, uinfo->login) == 0)
+			if ((strcmp(client->uinfo.login, uinfo->login) == 0) && strcmp(client->uinfo.password, uinfo->password) == 0)
 			{
 				return true;
 			}
@@ -205,6 +209,7 @@ namespace TCPChat
 				}
 			}
 		}
+
 		if (running)
 		{
 			thread_pool.AddJob(std::bind(&Server::ProcessData, this));

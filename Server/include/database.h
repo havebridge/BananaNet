@@ -15,6 +15,7 @@ namespace Core
 		MYSQL mysql;
 		MYSQL* connection = nullptr;
 		MYSQL_RES* res = nullptr;
+		MYSQL_ROW row;
 		int qstate = 0;
 
 	public:
@@ -24,6 +25,8 @@ namespace Core
 	public:
 		bool InsertUser(TCPChat::Client::user_info* uinfo, struct sockaddr_in client_info);
 		bool UpdateUserInfo(std::string login);
+		bool GetUsers(std::string username, TCPChat::Client::users_info_dto& users, unsigned client_count);
+		bool LoadMessageHistory(std::string login);
 		void DeleteUser();
 	};
 }

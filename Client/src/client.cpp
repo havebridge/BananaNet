@@ -226,13 +226,17 @@ namespace TCPChat
 	void Client::Disconnect()
 	{
 		std::cout << "Disconnect\n";
+		shutdown(client_socket, SD_SEND);
+		closesocket(client_socket);
 		is_connected = false;
 	}
 
 
 	void Client::Run()
 	{
+		while (true);
 
+		Disconnect();
 
 		//BOOL bNewBehavior = FALSE;
 		//DWORD dwBytesReturned = 0;
@@ -250,8 +254,6 @@ namespace TCPChat
 
 	Client::~Client()
 	{
-		//recieve_thread.join();
-		closesocket(client_socket);
 		WSACleanup();
 	}
 }

@@ -62,4 +62,34 @@ namespace Core
 
 		return true;
 	}
+
+	bool ChatDB::GetUsers(std::string username, TCPChat::Client::users_info_dto& users, unsigned client_count)
+	{
+		std::string query_string = "SELECT username FROM chat_user WHERE NOT username = ";
+		query_string += "'" + username + "';";
+
+		std::string test;
+
+		qstate = mysql_query(&mysql, query_string.c_str());
+
+		res = mysql_use_result(&mysql);
+
+		if (qstate != 0)
+		{
+			std::cout << mysql_error(&mysql) << std::endl;
+			mysql_close(connection);
+			return false;
+		}
+
+		int k = 0;
+		while (row = mysql_fetch_row(res)) 
+		{
+			std::cout << row[0] << '\n';
+			//TODO: 
+		}
+
+		mysql_store_result(&mysql);
+
+		return true;
+	}
 }

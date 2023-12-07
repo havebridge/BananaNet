@@ -3,6 +3,7 @@
 #include <iostream>
 #include <mutex>
 
+#define USER_DATA_SIZE 20
 
 namespace TCPChat
 {
@@ -17,11 +18,16 @@ namespace TCPChat
 
 		struct user_info
 		{
-			char username[20];
-			char login[20];
-			char password[20];
+			char username[USER_DATA_SIZE];
+			char login[USER_DATA_SIZE];
+			char password[USER_DATA_SIZE];
 
 			ConnectionType type;
+		};
+
+		struct users_info_dto
+		{
+			//TODO:
 		};
 
 		user_info uinfo;
@@ -38,15 +44,8 @@ namespace TCPChat
 		Client(struct sockaddr_in client_info, SOCKET client_socket, user_info _uinfo)
 			:
 			client_info(client_info),
-			client_socket(client_socket)
-		{
-			for (int i = 0; i != 20; ++i)
-			{
-				uinfo.username[i] = _uinfo.username[i];
-				uinfo.login[i] = _uinfo.login[i];
-				uinfo.password[i] = _uinfo.password[i];
-			}
-		}
+			client_socket(client_socket),
+			uinfo(_uinfo) {}
 
 		~Client()
 		{

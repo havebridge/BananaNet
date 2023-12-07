@@ -34,6 +34,8 @@ namespace TCPChat
 
 		Core::ChatDB db;
 
+		unsigned client_count = 0;
+
 	private:
 		void GetClientsInfo();
 		bool SearchForClient(Client::user_info* uinfo);
