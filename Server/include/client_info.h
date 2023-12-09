@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <mutex>
+#include <vector>
 
 #define USER_DATA_SIZE 20
 
@@ -27,7 +28,9 @@ namespace TCPChat
 
 		struct users_info_dto
 		{
-			//TODO:
+			std::vector<std::string> usernames;
+			SOCKET client_socket;
+			int client_count;
 		};
 
 		user_info uinfo;

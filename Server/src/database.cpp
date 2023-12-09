@@ -20,6 +20,22 @@ namespace Core
 		mysql_close(connection);
 	}
 
+	void ChatDB::DeleteUsersInfo()
+	{
+		std::string query_string = "DELETE from chat_use;";
+
+		qstate = mysql_query(&mysql, query_string.c_str());
+
+		if (qstate != 0)
+		{
+			std::cout << mysql_error(&mysql) << std::endl;
+			mysql_free_result(res);
+			mysql_close(connection);
+		}
+
+		mysql_store_result(&mysql);
+	}
+
 	bool ChatDB::InsertUser(TCPChat::Client::user_info* uinfo, struct sockaddr_in client_info)
 	{
 		std::string query_string = "INSERT INTO chat_user (username, login, password, ip, last_visited_at) VALUE (";
@@ -63,7 +79,7 @@ namespace Core
 		return true;
 	}
 
-	bool ChatDB::GetUsers(std::string username, TCPChat::Client::users_info_dto& users, unsigned client_count)
+	bool ChatDB::GetUsers(std::string username, TCPChat::Client::users_info_dto& data)
 	{
 		std::string query_string = "SELECT username FROM chat_user WHERE NOT username = ";
 		query_string += "'" + username + "';";
@@ -84,8 +100,12 @@ namespace Core
 		int k = 0;
 		while (row = mysql_fetch_row(res)) 
 		{
-			std::cout << row[0] << '\n';
-			//TODO: 
+			data.usernames.push_back(row[0]);
+		}
+
+		for (const auto& username : data.usernames)
+		{
+			std::cout << username << '\n';
 		}
 
 		mysql_store_result(&mysql);

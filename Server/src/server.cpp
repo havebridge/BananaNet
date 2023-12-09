@@ -125,6 +125,17 @@ namespace TCPChat
 
 		memcpy(&uinfo, recieved_buffer, sizeof(Client::user_info));
 
+		/*int a = 123;
+		if (send(client_socket, (char*)a, sizeof(int), 0) <= 0)
+		{
+			std::cout << WSAGetLastError() << '\n';
+			perror("recv uinfo_dto size");
+			return;
+		}
+
+		std::cout << a << '\n';*/
+
+
 		switch (uinfo.type)
 		{
 		case Client::ConnectionType::SIGN_UP:
@@ -142,9 +153,13 @@ namespace TCPChat
 			if (SearchForClient(&uinfo))
 			{
 				HN_INFO("Client is found");
-				//std::string login = std::string(uinfo.login);
+				uinfo_dto.client_socket = client_socket; 
+				uinfo_dto.client_count = client_count - 1;
+		
 				db.UpdateUserInfo(std::string(uinfo.login));
-				db.GetUsers(std::string(uinfo.login), uinfo_dto, client_count);
+				//TODO(): get client count with id in db
+				db.GetUsers(std::string(uinfo.login), uinfo_dto);
+				SendClientsInfo(&uinfo_dto);
 				//db.LoadMessageHistory();
 			}
 			else
@@ -185,6 +200,59 @@ namespace TCPChat
 		}
 
 		return false;
+	}
+
+	bool Server::SendClientsInfo(Client::users_info_dto* uinfo)
+	{
+		std::vector<char*> send_buffer;
+		std::transform(uinfo->usernames.begin(), uinfo->usernames.end(), std::back_inserter(send_buffer), [](const std::string& s) {
+			char* pc = new char[s.size() + 1];
+			std::strcpy(pc, s.c_str());
+			return pc;
+			});
+
+		for (auto i = 0; i != uinfo->client_count; ++i)
+		{
+			std::cout << send_buffer[i] << '\n';
+		}
+
+		/*int a = 2;
+
+		std::cout << uinfo->client_socket << '\n';
+
+		if (send(uinfo->client_socket, (char*)a, sizeof(int), 0) <= 0)
+		{
+			HN_ERROR("send() client_count failed");
+			HN_ERROR("WSA Error: {0}", WSAGetLastError());
+			return false;
+		}*/
+
+		const char* test = new char[5];
+		test = "12345";
+
+		if (send(uinfo->client_socket, test, 5, 0) <= 0)
+		{
+			HN_ERROR("send() client_count failed");
+			HN_ERROR("WSA Error: {0}", WSAGetLastError());
+			return false;
+		}
+
+
+		/*if (send(uinfo->client_socket, (char*)uinfo->client_count, sizeof(int), 0) <= 0)
+		{
+			HN_ERROR("send() client_count failed");
+			HN_ERROR("WSA Error: {0}", WSAGetLastError());
+			return;
+		}*/
+
+		/*if (send(client_socket, (char*)send_buffer.data(), uinfo->client_count, 0) <= 0)
+		{
+			HN_ERROR("send() send_buffer failed");
+			HN_ERROR("WSA Error: {0}", WSAGetLastError());
+			return;
+		}*/
+
+		return true;
 	}
 
 	void Server::ProcessData()
@@ -413,6 +481,8 @@ namespace TCPChat
 	void Server::Stop()
 	{
 		thread_pool.Join();
+		db.DeleteUsersInfo();
+		shutdown(server_socket, 0x02);
 		closesocket(server_socket);
 	}
 

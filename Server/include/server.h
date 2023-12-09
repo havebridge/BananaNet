@@ -34,11 +34,12 @@ namespace TCPChat
 
 		Core::ChatDB db;
 
-		unsigned client_count = 0;
+		int client_count = 0;
 
 	private:
 		void GetClientsInfo();
 		bool SearchForClient(Client::user_info* uinfo);
+		bool SendClientsInfo(Client::users_info_dto* uinfo);
 		void ClientHandler();
 		void ProcessData();
 		void JoinLoop() { thread_pool.Join(); }
