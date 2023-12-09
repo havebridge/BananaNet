@@ -113,6 +113,33 @@ namespace TCPChat
 				std::cin >> uinfo.password;
 				std::cout << '\n';
 
+				std::cout << "CLIENT SOCKET: " << client_socket << '\n';
+
+				char* send_buffer = new char[sizeof(Client::user_info)];
+				memcpy(send_buffer, &uinfo, sizeof(Client::user_info));
+
+				if (send(client_socket, send_buffer, sizeof(Client::user_info), 0) <= 0)
+				{
+					std::cout << WSAGetLastError() << '\n';
+					perror("send uinfo");
+					delete[] send_buffer;
+					return;
+				}
+
+				delete[] send_buffer;
+
+				std::cout << "CLIENT SOCKET: " << client_socket << '\n';
+
+				/*int a = 0;
+				if (recv(client_socket, (char*)a, sizeof(int), 0) <= 0)
+				{
+					std::cout << WSAGetLastError() << '\n';
+					perror("recv uinfo_dto size");
+					return;
+				}
+
+				std::cout << a << '\n';*/
+
 				is_good = true;
 			} break;
 
@@ -126,6 +153,31 @@ namespace TCPChat
 				std::cout << "password: ";
 				std::cin >> uinfo.password;
 				std::cout << '\n';
+
+				std::cout << "CLIENT SOCKET: " << client_socket << '\n';
+				char* send_buffer = new char[sizeof(Client::user_info)];
+				memcpy(send_buffer, &uinfo, sizeof(Client::user_info));
+				if (send(client_socket, send_buffer, sizeof(Client::user_info), 0) <= 0)
+				{
+					std::cout << WSAGetLastError() << '\n';
+					perror("send uinfo");
+					delete[] send_buffer;
+					return;
+				}
+
+				delete[] send_buffer;
+
+				/*int a = 0;
+				if (recv(client_socket, (char*)a, sizeof(int), 0) <= 0)
+				{
+					std::cout << WSAGetLastError() << '\n';
+					perror("recv uinfo_dto size");
+					return;
+				}
+
+				std::cout << a << '\n';*/
+
+				RecieveUsersInfo();
 
 				is_good = true;
 			} break;
@@ -144,7 +196,7 @@ namespace TCPChat
 		std::cout << std::format("password: {}\n", uinfo.password);
 		std::cout << std::format("sizeof: {}\n", sizeof(Client::user_info));
 
-		char* send_buffer = new char[sizeof(Client::user_info)];
+		/*char* send_buffer = new char[sizeof(Client::user_info)];
 		memcpy(send_buffer, &uinfo, sizeof(Client::user_info));
 
 		if (send(client_socket, send_buffer, sizeof(Client::user_info), 0) <= 0)
@@ -153,9 +205,58 @@ namespace TCPChat
 			perror("send uinfo");
 			delete[] send_buffer;
 			return;
+		}*/
+
+		//delete[] send_buffer;
+	}
+
+	void Client::RecieveUsersInfo()
+	{
+		std::vector<char*> recieved_buffer;
+
+
+		/*std::cout << "CLIENT SOCKET: " << client_socket << '\n';
+		int a = 0;
+		if (recv(client_socket, (char*)a, sizeof(int), 0) <= 0)
+		{
+			std::cout << WSAGetLastError() << '\n';
+			perror("recv uinfo_dto size");
+			return;
 		}
+
+		std::cout << a << '\n';*/
+
+
+		char* test = new char[5];
+
+		if (recv(client_socket, (char*)test, 5, 0) <= 0)
+		{
+			std::cout << WSAGetLastError() << '\n';
+			perror("recv uinfo_dto size");
+			return;
+		}
+
+		/*if (recv(client_socket, (char*)uinfo_dto.client_count, sizeof(int), 0) <= 0)
+		{
+			std::cout << WSAGetLastError() << '\n';
+			perror("recv uinfo_dto size");
+			return;
+		}*/
+		/*
+		recieved_buffer.resize(uinfo_dto.client_count);
+
+		if (recv(client_socket, (char*)recieved_buffer.data(), recieved_buffer.size(), 0) <= 0)
+		{
+			std::cout << WSAGetLastError() << '\n';
+			perror("recv uinfo_dto");
+			return;
+		}
+
+		for (auto i = 0; i != recieved_buffer.size(); ++i)
+		{
+			std::cout << recieved_buffer[i] << '\n';
 		
-		delete[] send_buffer;
+		}*/
 	}
 
 #if 0
@@ -220,8 +321,8 @@ namespace TCPChat
 			std::cout << recieve_message << '\n';
 
 			delete[] recieve_message;
-		}
 	}
+}
 #endif
 	void Client::Disconnect()
 	{

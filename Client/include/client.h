@@ -54,13 +54,20 @@ namespace TCPChat
 			ConnectionType type;
 		};
 
+		struct user_info_dto
+		{
+			std::vector<std::string> usernames;
+			int client_count = 0;
+		};
+
 		user_info uinfo;
+		user_info_dto uinfo_dto;
 
 	private:
 		void GetClientExternalIp();
 		void SendUserInfo();
 		void SendData();
-		void RecieveData();
+		void RecieveUsersInfo();
 
 	public:
 		friend std::ostream& operator<<(std::ostream& stream, const ConnectionType cType)
