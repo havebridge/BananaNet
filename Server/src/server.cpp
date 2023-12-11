@@ -204,33 +204,33 @@ namespace TCPChat
 
 	bool Server::SendClientsInfo(Client::users_info_dto* uinfo)
 	{
-		std::vector<char*> send_buffer;
-		std::transform(uinfo->usernames.begin(), uinfo->usernames.end(), std::back_inserter(send_buffer), [](const std::string& s) {
+		std::vector<char> send_buffer;
+		int send_buffer_size = 0;
+	
+		for (const auto& username : uinfo->usernames)
+		{
+			for (int i = 0; i != username.size(); ++i)
+			{
+				send_buffer.push_back(username[i]);
+			}
+			send_buffer.push_back('\0');
+		}
+
+		/*std::transform(uinfo->usernames.begin(), uinfo->usernames.end(), std::back_inserter(send_buffer), [](const std::string& s) {
 			char* pc = new char[s.size() + 1];
 			std::strcpy(pc, s.c_str());
 			return pc;
-			});
+			});*/
 
-		for (auto i = 0; i != uinfo->client_count; ++i)
+
+		std::cout << "send buffer\n";
+		for (auto i = 0; i != send_buffer.size(); ++i)
 		{
-			std::cout << send_buffer[i] << '\n';
+			std::cout << send_buffer[i];
 		}
+		std::cout << '\n';
 
-		/*int a = 2;
-
-		std::cout << uinfo->client_socket << '\n';
-
-		if (send(uinfo->client_socket, (char*)a, sizeof(int), 0) <= 0)
-		{
-			HN_ERROR("send() client_count failed");
-			HN_ERROR("WSA Error: {0}", WSAGetLastError());
-			return false;
-		}*/
-
-		const char* test = new char[5];
-		test = "12345";
-
-		if (send(uinfo->client_socket, test, 5, 0) <= 0)
+		if (send(uinfo->client_socket, (const char*)(&uinfo->client_count), sizeof(int), 0) <= 0)
 		{
 			HN_ERROR("send() client_count failed");
 			HN_ERROR("WSA Error: {0}", WSAGetLastError());
@@ -238,19 +238,20 @@ namespace TCPChat
 		}
 
 
-		/*if (send(uinfo->client_socket, (char*)uinfo->client_count, sizeof(int), 0) <= 0)
+		send_buffer_size = static_cast<int>(send_buffer.size());
+		if (send(uinfo->client_socket, (const char*)(&send_buffer_size), sizeof(int), 0) <= 0)
 		{
 			HN_ERROR("send() client_count failed");
 			HN_ERROR("WSA Error: {0}", WSAGetLastError());
-			return;
-		}*/
+			return false;
+		}
 
-		/*if (send(client_socket, (char*)send_buffer.data(), uinfo->client_count, 0) <= 0)
+		if (send(uinfo->client_socket, send_buffer.data(), send_buffer_size, 0) <= 0)
 		{
 			HN_ERROR("send() send_buffer failed");
 			HN_ERROR("WSA Error: {0}", WSAGetLastError());
-			return;
-		}*/
+			return false;
+		}
 
 		return true;
 	}
