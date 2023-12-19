@@ -62,10 +62,12 @@ namespace TCPChat
 			return false;
 		}
 
+
 		GetClientExternalIp();
-		SendUserInfo();
+		//SendUserInfo();
 
 		std::cout << std::format("Client info\nExternal ip: {} port: {}\n", client_external_ip, client_info.sin_port);
+		
 
 		is_connected = true;
 
@@ -168,6 +170,7 @@ namespace TCPChat
 				std::cout << "enter 1(sign up) or 2(sign in): ";
 			} break;
 			}
+			//is_good = true;
 		}
 
 		std::cout << "connection type: " << uinfo.type << '\n';
