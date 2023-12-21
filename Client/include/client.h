@@ -65,7 +65,6 @@ namespace TCPChat
 
 	private:
 		void GetClientExternalIp();
-		void SendUserInfo();
 		void SendData();
 		void RecieveUsersInfo();
 
@@ -91,6 +90,8 @@ namespace TCPChat
 
 	public:
 		bool Connect(std::string ip, int port);
+		bool SendUserInfoSignUp(std::string username, std::string login, std::string password);
+		bool SendUserInfoSignIn(std::string login, std::string password);
 		void Disconnect();
 		void Run();
 	};

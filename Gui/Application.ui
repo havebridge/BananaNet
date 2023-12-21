@@ -22,35 +22,19 @@
      <height>821</height>
     </rect>
    </property>
+   <property name="styleSheet">
+    <string notr="true"/>
+   </property>
    <widget class="QWidget" name="page">
     <property name="styleSheet">
-     <string notr="true">background-color: rgba(252,252,252,255)</string>
+     <string notr="true">background-color: rgba(0,0,0,255)</string>
     </property>
-    <widget class="QLabel" name="label">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>90</y>
-       <width>1291</width>
-       <height>521</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string/>
-     </property>
-     <property name="pixmap">
-      <pixmap>../logo.jpg</pixmap>
-     </property>
-     <property name="alignment">
-      <set>Qt::AlignCenter</set>
-     </property>
-    </widget>
     <widget class="QPushButton" name="SignUpButton">
      <property name="geometry">
       <rect>
-       <x>370</x>
-       <y>560</y>
-       <width>131</width>
+       <x>1100</x>
+       <y>20</y>
+       <width>80</width>
        <height>41</height>
       </rect>
      </property>
@@ -62,7 +46,9 @@
       </font>
      </property>
      <property name="styleSheet">
-      <string notr="true">background-color: #CCCCCC;</string>
+      <string notr="true">background-color: rgba(255, 255, 255, 0); 
+border: none; 
+color: white</string>
      </property>
      <property name="text">
       <string>Sign Up</string>
@@ -71,9 +57,9 @@
     <widget class="QPushButton" name="SignInButton">
      <property name="geometry">
       <rect>
-       <x>780</x>
-       <y>560</y>
-       <width>131</width>
+       <x>1190</x>
+       <y>20</y>
+       <width>80</width>
        <height>41</height>
       </rect>
      </property>
@@ -85,10 +71,31 @@
       </font>
      </property>
      <property name="styleSheet">
-      <string notr="true">background-color: #CCCCCC;</string>
+      <string notr="true">background-color: rgba(255, 255, 255, 0); 
+border: none; 
+color: white</string>
      </property>
      <property name="text">
       <string>Sign In</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label">
+     <property name="geometry">
+      <rect>
+       <x>300</x>
+       <y>75</y>
+       <width>691</width>
+       <height>701</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+     <property name="pixmap">
+      <pixmap>../../../../Downloads/photo_2023-12-21_04-10-23.jpg</pixmap>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
      </property>
     </widget>
    </widget>

@@ -62,13 +62,11 @@ namespace TCPChat
 			return false;
 		}
 
-
 		GetClientExternalIp();
 		//SendUserInfo();
 
 		std::cout << std::format("Client info\nExternal ip: {} port: {}\n", client_external_ip, client_info.sin_port);
 		
-
 		is_connected = true;
 
 		return is_connected;
@@ -88,7 +86,58 @@ namespace TCPChat
 		client_external_ip = std::string(buffer, read);
 	}
 
-	void Client::SendUserInfo()
+	bool Client::SendUserInfoSignUp(std::string username, std::string login, std::string password)
+	{
+		std::strcpy(uinfo.username, username.c_str());
+		std::strcpy(uinfo.login, login.c_str());
+		std::strcpy(uinfo.password, password.c_str());
+
+		uinfo.type = Client::ConnectionType::SIGN_UP;
+
+		char* send_buffer = new char[sizeof(Client::user_info)];
+		memcpy(send_buffer, &uinfo, sizeof(Client::user_info));
+
+		if (send(client_socket, send_buffer, sizeof(Client::user_info), 0) <= 0)
+		{
+			std::cout << WSAGetLastError() << '\n';
+			perror("send uinfo");
+			delete[] send_buffer;
+			return false;
+		}
+
+		delete[] send_buffer;
+		return true;
+	}
+
+	bool Client::SendUserInfoSignIn(std::string login, std::string password)
+	{
+		//std::string empty;
+		//strcpy(uinfo.username, empty.c_str());
+		strcpy(uinfo.login, login.c_str());
+		strcpy(uinfo.password, password.c_str());
+
+		uinfo.type = Client::ConnectionType::SIGN_IN;
+
+		char* send_buffer = new char[sizeof(Client::user_info)];
+		memcpy(send_buffer, &uinfo, sizeof(Client::user_info));
+
+		if (send(client_socket, send_buffer, sizeof(Client::user_info), 0) <= 0)
+		{
+			std::cout << WSAGetLastError() << '\n';
+			perror("send uinfo");
+			delete[] send_buffer;
+			return false;
+		}
+
+		delete[] send_buffer;
+
+		//RecieveUsersInfo();
+
+		
+		return true;
+	}
+
+	/*void Client::SendUserInfo()
 	{
 		std::cout << "sign up(1) or sign in(2)\n";
 		int i = 0;
@@ -170,7 +219,6 @@ namespace TCPChat
 				std::cout << "enter 1(sign up) or 2(sign in): ";
 			} break;
 			}
-			//is_good = true;
 		}
 
 		std::cout << "connection type: " << uinfo.type << '\n';
@@ -178,7 +226,7 @@ namespace TCPChat
 		std::cout << std::format("login: {}\n", uinfo.login);
 		std::cout << std::format("password: {}\n", uinfo.password);
 		std::cout << std::format("sizeof: {}\n", sizeof(Client::user_info));
-	}
+	}*/
 
 	void Client::RecieveUsersInfo()
 	{

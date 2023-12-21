@@ -114,54 +114,53 @@ namespace TCPChat
 			return;
 		}
 
+		char* recieved_buffer = new char[sizeof(Client::user_info)];
+		if (recv(client_socket, recieved_buffer, sizeof(Client::user_info), 0) <= 0)
+		{
+			HN_ERROR("recv() user_info failed");
+			HN_ERROR("WSA Error: {0}", WSAGetLastError());
+			delete[] recieved_buffer;
+			return;
+		}
 
-		//char* recieved_buffer = new char[sizeof(Client::user_info)];
-		//if (recv(client_socket, recieved_buffer, sizeof(Client::user_info), 0) <= 0)
-		//{
-		//	HN_ERROR("recv() user_info failed");
-		//	HN_ERROR("WSA Error: {0}", WSAGetLastError());
-		//	delete[] recieved_buffer;
-		//	return;
-		//}
+		memcpy(&uinfo, recieved_buffer, sizeof(Client::user_info));
 
-		//memcpy(&uinfo, recieved_buffer, sizeof(Client::user_info));
+		switch (uinfo.type)
+		{
+		case Client::ConnectionType::SIGN_UP:
+		{
+			std::unique_ptr<Client> client(new Client(client_info, client_socket, uinfo));
+			client_mutex.lock();
+			HN_INFO("Client connected IP: {0} PORT: {1}", client->GetHost(), client->GetPort());
+			db.InsertUser(&uinfo, client_info);
+			clients.emplace_back(std::move(client));
+			client_mutex.unlock();
+			client_count++;
+		} break;
+		case Client::ConnectionType::SIGN_IN:
+		{
+			if (SearchForClient(&uinfo))
+			{
+				HN_INFO("Client is found");
+				uinfo_dto.client_socket = client_socket; 
+				uinfo_dto.client_count = client_count - 1;
+		
+				db.UpdateUserInfo(std::string(uinfo.login));
+				//TODO(): get client count with id in db
+				db.GetUsers(std::string(uinfo.login), uinfo_dto);
+				SendClientsInfo(&uinfo_dto);
+				//db.LoadMessageHistory();
+			}
+			else
+			{
+				HN_INFO("Client is not found");
+			}
+		} break;
+		}
 
-		//switch (uinfo.type)
-		//{
-		//case Client::ConnectionType::SIGN_UP:
-		//{
-		//	std::unique_ptr<Client> client(new Client(client_info, client_socket, uinfo));
-		//	client_mutex.lock();
-		//	HN_INFO("Client connected IP: {0} PORT: {1}", client->GetHost(), client->GetPort());
-		//	db.InsertUser(&uinfo, client_info);
-		//	clients.emplace_back(std::move(client));
-		//	client_mutex.unlock();
-		//	client_count++;
-		//} break;
-		//case Client::ConnectionType::SIGN_IN:
-		//{
-		//	if (SearchForClient(&uinfo))
-		//	{
-		//		HN_INFO("Client is found");
-		//		uinfo_dto.client_socket = client_socket; 
-		//		uinfo_dto.client_count = client_count - 1;
-		//
-		//		db.UpdateUserInfo(std::string(uinfo.login));
-		//		//TODO(): get client count with id in db
-		//		db.GetUsers(std::string(uinfo.login), uinfo_dto);
-		//		SendClientsInfo(&uinfo_dto);
-		//		//db.LoadMessageHistory();
-		//	}
-		//	else
-		//	{
-		//		HN_INFO("Client is not found");
-		//	}
-		//} break;
-		//}
+		GetClientsInfo();
 
-		////GetClientsInfo();
-
-		//delete[] recieved_buffer;
+		delete[] recieved_buffer;
 
 		if (running)
 		{
