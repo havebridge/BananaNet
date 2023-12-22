@@ -114,16 +114,33 @@ namespace TCPChat
 			return;
 		}
 
-		char* recieved_buffer = new char[sizeof(Client::user_info)];
-		if (recv(client_socket, recieved_buffer, sizeof(Client::user_info), 0) <= 0)
+		std::string recieved_buffer;
+		int recieved_buffer_size = 0;
+
+		if (recv(client_socket, (char*)&recieved_buffer_size, sizeof(int), 0) <= 0)
 		{
-			HN_ERROR("recv() user_info failed");
+			HN_ERROR("ClientHandler: recieved_buffer_size recv");
 			HN_ERROR("WSA Error: {0}", WSAGetLastError());
-			delete[] recieved_buffer;
-			return;
 		}
 
-		memcpy(&uinfo, recieved_buffer, sizeof(Client::user_info));
+		recieved_buffer.resize(recieved_buffer_size);
+
+		if (recv(client_socket, recieved_buffer.data(), recieved_buffer_size, 0) <= 0)
+		{
+			HN_ERROR("ClientHandler: recieved_buffer_size recv");
+			HN_ERROR("WSA Error: {0}", WSAGetLastError());
+		}
+
+		json json_data = json::parse(recieved_buffer);
+
+		uinfo.username = json_data["username"];
+		uinfo.login = json_data["login"];
+		uinfo.password = json_data["password"];
+		uinfo.type = static_cast<Client::ConnectionType>(json_data["type"].get<int>());
+
+		
+		HN_INFO("username: {0} login: {1} password: {2} type: {3}", uinfo.username, uinfo.login, uinfo.password, uinfo.type);
+
 
 		switch (uinfo.type)
 		{
@@ -145,10 +162,12 @@ namespace TCPChat
 				uinfo_dto.client_socket = client_socket; 
 				uinfo_dto.client_count = client_count - 1;
 		
-				db.UpdateUserInfo(std::string(uinfo.login));
-				//TODO(): get client count with id in db
-				db.GetUsers(std::string(uinfo.login), uinfo_dto);
+				db.UpdateUserInfo(uinfo.login);
+				db.GetUsers(uinfo.login, uinfo_dto);
 				SendClientsInfo(&uinfo_dto);
+
+
+				//TODO(): get client count with id in db
 				//db.LoadMessageHistory();
 			}
 			else
@@ -160,7 +179,6 @@ namespace TCPChat
 
 		GetClientsInfo();
 
-		delete[] recieved_buffer;
 
 		if (running)
 		{
@@ -182,7 +200,7 @@ namespace TCPChat
 	{
 		for (const auto& client : clients)
 		{
-			if ((strcmp(client->uinfo.login, uinfo->login) == 0) && strcmp(client->uinfo.password, uinfo->password) == 0)
+			if ((client->uinfo.login == uinfo->login) && (client->uinfo.password == uinfo->password))
 			{
 				return true;
 			}

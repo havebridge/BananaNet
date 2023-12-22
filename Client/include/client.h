@@ -10,8 +10,10 @@
 #include <mutex>
 #include <condition_variable>
 
-#include "../../Core/Core.h"
+#include "Core.h"
+#include "nlohmann/json.hpp"
 
+using json = nlohmann::json;
 
 namespace TCPChat
 {
@@ -47,9 +49,9 @@ namespace TCPChat
 
 		struct user_info
 		{
-			char username[20];
-			char login[20];
-			char password[20];
+			std::string username;
+			std::string login;
+			std::string password;
 
 			ConnectionType type;
 		};

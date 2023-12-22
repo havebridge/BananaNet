@@ -4,6 +4,9 @@
 #include "thread_pool.h"
 #include "logger.h"
 #include "client_info.h"
+#include "nlohmann/json.hpp"
+
+using json = nlohmann::json;
 
 namespace TCPChat
 {

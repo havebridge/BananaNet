@@ -32,6 +32,10 @@ void SignInWidget::on_SignInToButton_clicked()
 	{
 		QMessageBox::critical(this, "Error", "Login and Password could not be empty!");
 	}
+	else if (login.size() > 255 || password.size() > 255)
+	{
+		QMessageBox::critical(this, "Message error", "Login and Password could not be greater than 255 symbols!");
+	}
 	else
 	{
 		if (button)

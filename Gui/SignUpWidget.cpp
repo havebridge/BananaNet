@@ -31,7 +31,11 @@ void SignUpWidget::on_SignUpToButton_clicked()
 
 	if (username.isEmpty() || login.isEmpty() || password.isEmpty())
 	{
-		QMessageBox::critical(this, "Error", "Username, login and password could not be empty!");
+		QMessageBox::critical(this, "Message error", "Username, Login and Password could not be empty!");
+	}
+	else if (username.size() > 255 || login.size() > 255 || password.size() > 255)
+	{
+		QMessageBox::critical(this, "Message error", "Usename, Login and Password could not be greater than 255 symbols!");
 	}
 	else
 	{

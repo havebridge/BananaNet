@@ -4,8 +4,6 @@
 #include <mutex>
 #include <vector>
 
-#define USER_DATA_SIZE 20
-
 namespace TCPChat
 {
 	class Client
@@ -19,9 +17,9 @@ namespace TCPChat
 
 		struct user_info
 		{
-			char username[USER_DATA_SIZE];
-			char login[USER_DATA_SIZE];
-			char password[USER_DATA_SIZE];
+			std::string username;
+			std::string login;
+			std::string password;
 
 			ConnectionType type;
 		};

@@ -88,48 +88,58 @@ namespace TCPChat
 
 	bool Client::SendUserInfoSignUp(std::string username, std::string login, std::string password)
 	{
-		std::strcpy(uinfo.username, username.c_str());
-		std::strcpy(uinfo.login, login.c_str());
-		std::strcpy(uinfo.password, password.c_str());
+		json jsonData = {
+			{"username", username},
+			{"login", login},
+			{"password", password},
+			{"type", static_cast<int>(Client::ConnectionType::SIGN_UP)}
+		};
 
-		uinfo.type = Client::ConnectionType::SIGN_UP;
+		std::string serialized_data = jsonData.dump();
+		int serialized_data_size = serialized_data.size();
 
-		char* send_buffer = new char[sizeof(Client::user_info)];
-		memcpy(send_buffer, &uinfo, sizeof(Client::user_info));
-
-		if (send(client_socket, send_buffer, sizeof(Client::user_info), 0) <= 0)
+		if (send(client_socket, (const char*)&serialized_data_size, sizeof(int), 0) <= 0)
 		{
 			std::cout << WSAGetLastError() << '\n';
-			perror("send uinfo");
-			delete[] send_buffer;
+			perror("SendUserInfoSignUp: serialized_data_size send");
 			return false;
 		}
 
-		delete[] send_buffer;
+		if (send(client_socket, serialized_data.c_str(), serialized_data_size, 0) <= 0)
+		{
+			std::cout << WSAGetLastError() << '\n';
+			perror("SendUserInfoSignUp: serialized_data send");
+			return false;
+		}
+
 		return true;
 	}
 
 	bool Client::SendUserInfoSignIn(std::string login, std::string password)
 	{
-		//std::string empty;
-		//strcpy(uinfo.username, empty.c_str());
-		strcpy(uinfo.login, login.c_str());
-		strcpy(uinfo.password, password.c_str());
+		json jsonData = {
+			{"username", std::string()},
+			{"login", login},
+			{"password", password},
+			{"type", static_cast<int>(Client::ConnectionType::SIGN_IN)}
+		};
 
-		uinfo.type = Client::ConnectionType::SIGN_IN;
+		std::string serialized_data = jsonData.dump();
+		int serialized_data_size = serialized_data.size();
 
-		char* send_buffer = new char[sizeof(Client::user_info)];
-		memcpy(send_buffer, &uinfo, sizeof(Client::user_info));
-
-		if (send(client_socket, send_buffer, sizeof(Client::user_info), 0) <= 0)
+		if (send(client_socket, (const char*)&serialized_data_size, sizeof(int), 0) <= 0)
 		{
 			std::cout << WSAGetLastError() << '\n';
-			perror("send uinfo");
-			delete[] send_buffer;
+			perror("SendUserInfoSignUp: serialized_data_size send");
 			return false;
 		}
 
-		delete[] send_buffer;
+		if (send(client_socket, serialized_data.c_str(), serialized_data_size, 0) <= 0)
+		{
+			std::cout << WSAGetLastError() << '\n';
+			perror("SendUserInfoSignUp: serialized_data send");
+			return false;
+		}
 
 		//RecieveUsersInfo();
 

@@ -39,9 +39,9 @@ namespace Core
 	bool ChatDB::InsertUser(TCPChat::Client::user_info* uinfo, struct sockaddr_in client_info)
 	{
 		std::string query_string = "INSERT INTO chat_user (username, login, password, ip, last_visited_at) VALUE (";
-		query_string += "'" + std::string(uinfo->username) + "',";
-		query_string += "'" + std::string(uinfo->login) + "',";
-		query_string += "'" + std::string(uinfo->password) + "',";
+		query_string += "'" + uinfo->username + "',";
+		query_string += "'" + uinfo->login + "',";
+		query_string += "'" + uinfo->password + "',";
 		query_string += "INET_ATON('" + std::string(inet_ntoa(client_info.sin_addr)) + "'),";
 		query_string += "NOW()";
 		query_string += ")";
@@ -83,8 +83,6 @@ namespace Core
 	{
 		std::string query_string = "SELECT username FROM chat_user WHERE NOT username = ";
 		query_string += "'" + username + "';";
-
-		std::string test;
 
 		qstate = mysql_query(&mysql, query_string.c_str());
 
