@@ -1,2 +1,2 @@
-# hnet(TCP Multithreaded Chat)
+# BananaNet(TCP Multithreaded Chat)
 -----------
