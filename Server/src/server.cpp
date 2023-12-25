@@ -107,9 +107,10 @@ namespace TCPChat
 		Client::users_info_dto uinfo_dto = {};
 		
 		SOCKET client_socket = accept(server_socket, (sockaddr*)&client_info, &client_info_lenght);
+		std::cout << "Client Socket:" << client_socket << '\n';
 		if (client_socket == INVALID_SOCKET)
 		{
-			HN_ERROR("accept() failed");
+			HN_ERROR("ClientHandler(): accept");
 			HN_ERROR("WSA Error: {0}", WSAGetLastError());
 			return;
 		}
@@ -119,7 +120,7 @@ namespace TCPChat
 
 		if (recv(client_socket, (char*)&recieved_buffer_size, sizeof(int), 0) <= 0)
 		{
-			HN_ERROR("ClientHandler: recieved_buffer_size recv");
+			HN_ERROR("ClientHandler(): recieved_buffer_size recv");
 			HN_ERROR("WSA Error: {0}", WSAGetLastError());
 		}
 
@@ -127,7 +128,7 @@ namespace TCPChat
 
 		if (recv(client_socket, recieved_buffer.data(), recieved_buffer_size, 0) <= 0)
 		{
-			HN_ERROR("ClientHandler: recieved_buffer_size recv");
+			HN_ERROR("ClientHandler(): recieved_buffer_size recv");
 			HN_ERROR("WSA Error: {0}", WSAGetLastError());
 		}
 
@@ -159,14 +160,16 @@ namespace TCPChat
 			if (SearchForClient(&uinfo))
 			{
 				HN_INFO("Client is found");
-				uinfo_dto.client_socket = client_socket; 
+				client_mutex.lock();
+				std::cout << "Client Socket:" << client_socket << '\n';
+				//uinfo_dto.client_socket = client_socket; 
 				uinfo_dto.client_count = client_count - 1;
 		
 				db.UpdateUserInfo(uinfo.login);
 				db.GetUsers(uinfo.login, uinfo_dto);
-				SendClientsInfo(&uinfo_dto);
-
-
+				SendClientsInfo(uinfo_dto, client_socket);
+			
+				client_mutex.unlock();
 				//TODO(): get client count with id in db
 				//db.LoadMessageHistory();
 			}
@@ -209,53 +212,25 @@ namespace TCPChat
 		return false;
 	}
 
-	bool Server::SendClientsInfo(Client::users_info_dto* uinfo)
-	{
-		std::vector<char> send_buffer;
-		int send_buffer_size = 0;
+	bool Server::SendClientsInfo(const Client::users_info_dto& uinfo, SOCKET client_socket)
+	{		
+		json json_data;
+		json_data["usernames"] = uinfo.usernames;
+		json_data["client_count"] = uinfo.client_count;
+		std::string serialized_data = json_data.dump();
+		int serialized_data_size = serialized_data.size();
+
 	
-		for (const auto& username : uinfo->usernames)
+		if (send(client_socket, (const char*)&serialized_data_size, sizeof(int), 0) <= 0)
 		{
-			for (int i = 0; i != username.size(); ++i)
-			{
-				send_buffer.push_back(username[i]);
-			}
-			send_buffer.push_back('\0');
-		}
-
-		/*std::transform(uinfo->usernames.begin(), uinfo->usernames.end(), std::back_inserter(send_buffer), [](const std::string& s) {
-			char* pc = new char[s.size() + 1];
-			std::strcpy(pc, s.c_str());
-			return pc;
-			});*/
-
-
-		std::cout << "send buffer\n";
-		for (auto i = 0; i != send_buffer.size(); ++i)
-		{
-			std::cout << send_buffer[i];
-		}
-		std::cout << '\n';
-
-		if (send(uinfo->client_socket, (const char*)(&uinfo->client_count), sizeof(int), 0) <= 0)
-		{
-			HN_ERROR("send() client_count failed");
+			HN_ERROR("SendClientsInfo(): send serialized_data");
 			HN_ERROR("WSA Error: {0}", WSAGetLastError());
 			return false;
 		}
 
-
-		send_buffer_size = static_cast<int>(send_buffer.size());
-		if (send(uinfo->client_socket, (const char*)(&send_buffer_size), sizeof(int), 0) <= 0)
+		if (send(client_socket, serialized_data.c_str(), serialized_data_size, 0) <= 0)
 		{
-			HN_ERROR("send() client_count failed");
-			HN_ERROR("WSA Error: {0}", WSAGetLastError());
-			return false;
-		}
-
-		if (send(uinfo->client_socket, send_buffer.data(), send_buffer_size, 0) <= 0)
-		{
-			HN_ERROR("send() send_buffer failed");
+			HN_ERROR("SendClientsInfo(): send serialized_data");
 			HN_ERROR("WSA Error: {0}", WSAGetLastError());
 			return false;
 		}
@@ -490,7 +465,7 @@ namespace TCPChat
 	{
 		thread_pool.Join();
 		db.DeleteUsersInfo();
-		shutdown(server_socket, 0x02);
+		//shutdown(server_socket, 0x02);
 		closesocket(server_socket);
 	}
 

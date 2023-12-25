@@ -3,14 +3,14 @@
 
 int main(int argc, char *argv[])
 {
-    //AllocConsole();
-    //freopen("CONOUT$", "w", stdout);
-
     QApplication application(argc, argv);
+
+    AllocConsole();
+    freopen("CONOUT$", "w", stdout);
 
     Application window;
 
     window.show();
-
+    
     return application.exec();
 }

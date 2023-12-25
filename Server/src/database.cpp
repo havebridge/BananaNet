@@ -38,13 +38,11 @@ namespace Core
 
 	bool ChatDB::InsertUser(TCPChat::Client::user_info* uinfo, struct sockaddr_in client_info)
 	{
-		std::string query_string = "INSERT INTO chat_user (username, login, password, ip, last_visited_at) VALUE (";
-		query_string += "'" + uinfo->username + "',";
-		query_string += "'" + uinfo->login + "',";
-		query_string += "'" + uinfo->password + "',";
-		query_string += "INET_ATON('" + std::string(inet_ntoa(client_info.sin_addr)) + "'),";
-		query_string += "NOW()";
-		query_string += ")";
+		std::string query_string = "INSERT INTO chat_user (username, login, password, ip, last_visited_at) VALUE ('";
+		query_string += uinfo->username + "','";
+		query_string += uinfo->login + "','";
+		query_string += uinfo->password + "', INET_ATON('";
+		query_string += std::string(inet_ntoa(client_info.sin_addr)) + "'), NOW())";
 
 		qstate = mysql_query(&mysql, query_string.c_str());
 
@@ -62,8 +60,8 @@ namespace Core
 
 	bool ChatDB::UpdateUserInfo(std::string login)
 	{
-		std::string query_string = "UPDATE chat_user SET last_visited_at = NOW() WHERE login = ";
-		query_string += "'" + login + "';";
+		std::string query_string = "UPDATE chat_user SET last_visited_at = NOW() WHERE login = '";
+		query_string += login + "';";
 
 		qstate = mysql_query(&mysql, query_string.c_str());
 
@@ -81,8 +79,8 @@ namespace Core
 
 	bool ChatDB::GetUsers(std::string username, TCPChat::Client::users_info_dto& data)
 	{
-		std::string query_string = "SELECT username FROM chat_user WHERE NOT username = ";
-		query_string += "'" + username + "';";
+		std::string query_string = "SELECT username FROM chat_user WHERE NOT username = '";
+		query_string += username + "';";
 
 		qstate = mysql_query(&mysql, query_string.c_str());
 
@@ -99,11 +97,6 @@ namespace Core
 		while (row = mysql_fetch_row(res)) 
 		{
 			data.usernames.push_back(row[0]);
-		}
-
-		for (const auto& username : data.usernames)
-		{
-			std::cout << username << '\n';
 		}
 
 		mysql_store_result(&mysql);

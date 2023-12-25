@@ -20,6 +20,17 @@ namespace TCPChat
 	class Client
 	{
 	private:
+		enum ConnectionType : int8_t
+		{
+			SIGN_UP = 1,
+			SIGN_IN
+		};
+
+		struct user_info_dto
+		{
+			std::vector<std::string> usernames;
+			int client_count = 0;
+		} uinfo_dto;
 
 		WSAData wsa;
 
@@ -39,31 +50,6 @@ namespace TCPChat
 		int recieved_message_size;
 
 		bool is_connected = false;
-
-	private:
-		enum ConnectionType : int8_t
-		{
-			SIGN_UP = 1,
-			SIGN_IN
-		};
-
-		struct user_info
-		{
-			std::string username;
-			std::string login;
-			std::string password;
-
-			ConnectionType type;
-		};
-
-		struct user_info_dto
-		{
-			std::vector<std::string> usernames;
-			int client_count = 0;
-		};
-
-		user_info uinfo;
-		user_info_dto uinfo_dto;
 
 	private:
 		void GetClientExternalIp();
@@ -87,7 +73,7 @@ namespace TCPChat
 	public:
 		explicit Client() noexcept;
 		Client(const Client&) = delete;
-		Client operator=(const Client&) = delete;
+		//Client operator=(const Client&) = delete;
 		~Client();
 
 	public:
@@ -96,5 +82,11 @@ namespace TCPChat
 		bool SendUserInfoSignIn(std::string login, std::string password);
 		void Disconnect();
 		void Run();
+
+		static Client& GetInstance()
+		{
+			static Client instance;
+			return instance;
+		}
 	};
 }

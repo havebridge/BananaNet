@@ -4,8 +4,8 @@ Application::Application(QWidget *parent)
 	: QWidget(parent)
 {
 	ui = new Ui::ApplicationClass;
-	client = &Instance::client;
-	client->Connect("127.0.0.1", 8888);
+
+	client.Connect("127.0.0.1", 8888);
 
 	ui->setupUi(this);
 	

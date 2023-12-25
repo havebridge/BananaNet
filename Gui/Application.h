@@ -5,19 +5,19 @@
 
 #include "SignUpWidget.h"
 #include "SignInWidget.h"
-#include "Instance.h"
 #include "ui_Application.h"
-#include <client.h>
+#include "client.h"
 
 class Application : public QWidget
 {
 	Q_OBJECT
 private:
 	Ui::ApplicationClass* ui;
+
 	SignUpWidget SignUpW;
 	SignInWidget SignInW;
 
-	TCPChat::Client* client;
+	TCPChat::Client& client = TCPChat::Client::GetInstance();
 
 private slots:
 	void on_SignUp_clicked();

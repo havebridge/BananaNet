@@ -111,20 +111,20 @@ namespace TCPChat
 			perror("SendUserInfoSignUp: serialized_data send");
 			return false;
 		}
-
+		
 		return true;
 	}
 
 	bool Client::SendUserInfoSignIn(std::string login, std::string password)
 	{
-		json jsonData = {
+		json json_data = {
 			{"username", std::string()},
 			{"login", login},
 			{"password", password},
 			{"type", static_cast<int>(Client::ConnectionType::SIGN_IN)}
 		};
 
-		std::string serialized_data = jsonData.dump();
+		std::string serialized_data = json_data.dump();
 		int serialized_data_size = serialized_data.size();
 
 		if (send(client_socket, (const char*)&serialized_data_size, sizeof(int), 0) <= 0)
@@ -141,158 +141,42 @@ namespace TCPChat
 			return false;
 		}
 
-		//RecieveUsersInfo();
+		RecieveUsersInfo();
 
-		
 		return true;
 	}
 
-	/*void Client::SendUserInfo()
-	{
-		std::cout << "sign up(1) or sign in(2)\n";
-		int i = 0;
-		bool is_good = false;
-
-		while (!is_good)
-		{
-			std::cin >> i;
-			uinfo.type = static_cast<ConnectionType>(i);
-
-			switch (uinfo.type)
-			{
-			case ConnectionType::SIGN_UP:
-			{
-				std::cout << "SIGN UP\n";
-
-				std::cout << "username: ";
-				std::cin >> uinfo.username;
-
-				std::cout << "login: ";
-				std::cin >> uinfo.login;
-
-				std::cout << "password: ";
-				std::cin >> uinfo.password;
-				std::cout << '\n';
-
-				std::cout << "CLIENT SOCKET: " << client_socket << '\n';
-
-				char* send_buffer = new char[sizeof(Client::user_info)];
-				memcpy(send_buffer, &uinfo, sizeof(Client::user_info));
-
-				if (send(client_socket, send_buffer, sizeof(Client::user_info), 0) <= 0)
-				{
-					std::cout << WSAGetLastError() << '\n';
-					perror("send uinfo");
-					delete[] send_buffer;
-					return;
-				}
-
-				delete[] send_buffer;
-
-				std::cout << "CLIENT SOCKET: " << client_socket << '\n';
-
-				is_good = true;
-			} break;
-
-			case ConnectionType::SIGN_IN:
-			{
-				std::cout << "SIGN IN\n";
-
-				std::cout << "login: ";
-				std::cin >> uinfo.login;
-
-				std::cout << "password: ";
-				std::cin >> uinfo.password;
-				std::cout << '\n';
-
-				std::cout << "CLIENT SOCKET: " << client_socket << '\n';
-				char* send_buffer = new char[sizeof(Client::user_info)];
-				memcpy(send_buffer, &uinfo, sizeof(Client::user_info));
-				if (send(client_socket, send_buffer, sizeof(Client::user_info), 0) <= 0)
-				{
-					std::cout << WSAGetLastError() << '\n';
-					perror("send uinfo");
-					delete[] send_buffer;
-					return;
-				}
-
-				delete[] send_buffer;
-
-				RecieveUsersInfo();
-
-				is_good = true;
-			} break;
-
-			default:
-			{
-				i = 0;
-				std::cout << "enter 1(sign up) or 2(sign in): ";
-			} break;
-			}
-		}
-
-		std::cout << "connection type: " << uinfo.type << '\n';
-		std::cout << std::format("username: {}\n", uinfo.username);
-		std::cout << std::format("login: {}\n", uinfo.login);
-		std::cout << std::format("password: {}\n", uinfo.password);
-		std::cout << std::format("sizeof: {}\n", sizeof(Client::user_info));
-	}*/
 
 	void Client::RecieveUsersInfo()
 	{
-		std::vector<char> recieved_buffer;
+		std::string recieved_buffer;
 		int recieved_buffer_size = 0;
 
-		if (recv(client_socket, (char*)(&uinfo_dto.client_count), sizeof(int), 0) <= 0)
+		if (recv(client_socket, (char*)&recieved_buffer_size, sizeof(int), 0) <= 0)
 		{
 			std::cout << WSAGetLastError() << '\n';
-			perror("recv uinfo_dto size");
-			return;
-		}
-		
-		if (recv(client_socket, (char*)(&recieved_buffer_size), sizeof(int), 0) <= 0)
-		{
-			std::cout << WSAGetLastError() << '\n';
-			perror("recv uinfo_dto");
-			return;
+			perror("RecieveUsersInfo(): recieved_buffer_size recv");
 		}
 
-		std::cout << uinfo_dto.client_count << '\n';
-
-		recieved_buffer.resize(recieved_buffer_size, 0x00);
+		recieved_buffer.resize(recieved_buffer_size);
 
 		if (recv(client_socket, recieved_buffer.data(), recieved_buffer_size, 0) <= 0)
 		{
 			std::cout << WSAGetLastError() << '\n';
-			perror("recv uinfo_dto");
-			return;
+			perror("RecieveUsersInfo(): recieved_buffer_size recv");
 		}
 
-		for (int i = 0; i != recieved_buffer.size(); ++i)
-		{
-			std::cout << recieved_buffer[i];
-		}
-		std::cout << '\n';
+		json json_data = json::parse(recieved_buffer);
 
-		std::string tmp;
-		for (const auto& byte : recieved_buffer)
-		{
-			if (byte == '\0')
-			{
-				uinfo_dto.usernames.push_back(tmp);
-				tmp.clear();
-			}
-			else
-			{
-				tmp += byte;
-			}
-		}
+		uinfo_dto.usernames = json_data["usernames"];
+		uinfo_dto.client_count = json_data["client_count"];
 		
 		std::cout << "USERNAMES: ";
 		for (const auto& username : uinfo_dto.usernames)
 		{
 			std::cout << username << '\n';
 		}
+		std::cout << "Client count: " << uinfo_dto.client_count << '\n';
 	}
 
 #if 0

@@ -22,16 +22,13 @@ namespace TCPChat
 			std::string password;
 
 			ConnectionType type;
-		};
+		} uinfo;
 
 		struct users_info_dto
 		{
 			std::vector<std::string> usernames;
-			SOCKET client_socket;
 			int client_count;
 		};
-
-		user_info uinfo;
 
 		struct sockaddr_in client_info;
 		SOCKET client_socket;
