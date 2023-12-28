@@ -24,10 +24,10 @@ namespace TCPChat
 			ConnectionType type;
 		} uinfo;
 
-		struct users_info_dto
+		struct user_info_dto
 		{
 			std::vector<std::string> usernames;
-			int client_count;
+			int client_count = 0;
 		};
 
 		struct sockaddr_in client_info;

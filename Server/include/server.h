@@ -42,7 +42,7 @@ namespace TCPChat
 	private:
 		void GetClientsInfo();
 		bool SearchForClient(Client::user_info* uinfo);
-		bool SendClientsInfo(const Client::users_info_dto& uinfo, SOCKET client_socket);
+		bool SendClientsInfo(const Client::user_info_dto& uinfo, SOCKET client_socket);
 		void ClientHandler();
 		void ProcessData();
 		void JoinLoop() { thread_pool.Join(); }

@@ -49,12 +49,13 @@ namespace TCPChat
 		int send_message_size;
 		int recieved_message_size;
 
+		std::thread recv_thread;
+
 		bool is_connected = false;
 
 	private:
 		void GetClientExternalIp();
 		void SendData();
-		void RecieveUsersInfo();
 
 	public:
 		friend std::ostream& operator<<(std::ostream& stream, const ConnectionType cType)
@@ -80,6 +81,7 @@ namespace TCPChat
 		bool Connect(std::string ip, int port);
 		bool SendUserInfoSignUp(std::string username, std::string login, std::string password);
 		bool SendUserInfoSignIn(std::string login, std::string password);
+		void RecieveUsersInfo();
 		void Disconnect();
 		void Run();
 

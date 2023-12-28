@@ -21,13 +21,15 @@ Application::Application(QWidget *parent)
 
 void Application::on_SignUp_clicked()
 {
-	qDebug() << "SignUp clicked\n";
+	std::cout << "SignUp clicked\n";
+	//qDebug() << "SignUp clicked\n";
 	ui->stackedWidget->setCurrentIndex(1);
 }
 
 void Application::on_SignIn_clicked()
 {
-	qDebug() << "SignIn clicked\n";
+	std::cout << "SignIn clicked\n";
+	//qDebug() << "SignIn clicked\n";
 	ui->stackedWidget->setCurrentIndex(2);
 }
 
@@ -40,5 +42,4 @@ void Application::MoveHome()
 Application::~Application()
 {
 	delete ui;
-	//delete client;
 }

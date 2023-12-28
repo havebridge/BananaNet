@@ -62,11 +62,10 @@ namespace TCPChat
 			return false;
 		}
 
-		GetClientExternalIp();
-		//SendUserInfo();
+		GetClientExternalIp();	//mb shoudl`t use
 
 		std::cout << std::format("Client info\nExternal ip: {} port: {}\n", client_external_ip, client_info.sin_port);
-		
+
 		is_connected = true;
 
 		return is_connected;
@@ -111,7 +110,7 @@ namespace TCPChat
 			perror("SendUserInfoSignUp: serialized_data send");
 			return false;
 		}
-		
+
 		return true;
 	}
 
@@ -141,8 +140,6 @@ namespace TCPChat
 			return false;
 		}
 
-		RecieveUsersInfo();
-
 		return true;
 	}
 
@@ -170,7 +167,7 @@ namespace TCPChat
 
 		uinfo_dto.usernames = json_data["usernames"];
 		uinfo_dto.client_count = json_data["client_count"];
-		
+
 		std::cout << "USERNAMES: ";
 		for (const auto& username : uinfo_dto.usernames)
 		{
@@ -179,71 +176,6 @@ namespace TCPChat
 		std::cout << "Client count: " << uinfo_dto.client_count << '\n';
 	}
 
-#if 0
-	void Client::SendData()
-	{
-		std::cout << "Send message: ";
-		std::getline(std::cin, send_message);
-
-		send_message_size = send_message.size();
-
-		if (sendto(client_socket, (char*)&send_message_size, sizeof(int), 0, (const sockaddr*)&server_info, server_info_lenght) <= 0)
-		{
-			std::cout << WSAGetLastError() << '\n';
-			perror("sendto message size");
-			return;
-		}
-
-		if (sendto(client_socket, send_message.c_str(), send_message_size, 0, (const sockaddr*)&server_info, server_info_lenght) <= 0)
-		{
-			std::cout << WSAGetLastError() << '\n';
-			perror("sendto message");
-			return;
-		}
-
-		int client = static_cast<int>(client_type);
-
-		if (sendto(client_socket, (char*)&client, sizeof(int), 0, (const sockaddr*)&server_info, server_info_lenght) <= 0)
-		{
-			std::cout << WSAGetLastError() << '\n';
-			perror("sendto message");
-			return;
-		}
-	}
-
-	void Client::RecieveData()
-	{
-		while (true)
-		{
-			std::unique_lock<std::mutex> recv_lock(recieve_mutex);
-
-			cv.wait(recv_lock, [this] {
-				return is_connected;
-				});
-
-			if (recvfrom(client_socket, (char*)&recieve_message_size, sizeof(int), 0, (sockaddr*)&server_info, &server_info_lenght) <= 0)
-			{
-				std::cout << WSAGetLastError() << '\n';
-				perror("recvfrom message size");
-				return;
-			}
-
-			recieve_message = new char[recieve_message_size + 1];
-			recieve_message[recieve_message_size] = '\0';
-
-			if (recvfrom(client_socket, recieve_message, recieve_message_size, 0, (sockaddr*)&server_info, &server_info_lenght) <= 0)
-			{
-				std::cout << WSAGetLastError() << '\n';
-				perror("recvfrom message");
-				return;
-			}
-
-			std::cout << recieve_message << '\n';
-
-			delete[] recieve_message;
-	}
-}
-#endif
 	void Client::Disconnect()
 	{
 		std::cout << "Disconnect\n";
@@ -275,6 +207,11 @@ namespace TCPChat
 
 	Client::~Client()
 	{
+		if (recv_thread.joinable())
+		{
+			recv_thread.join();
+		}
+		closesocket(client_socket);
 		WSACleanup();
 	}
 }

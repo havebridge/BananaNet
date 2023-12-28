@@ -13,8 +13,10 @@ class SignUpWidget : public QWidget
 	Q_OBJECT
 private:
 	Ui::SignUpWidgetClass* ui;
+
 	Chat* ChatWidget;
-	TCPChat::Client* client;
+
+	TCPChat::Client& client = TCPChat::Client::GetInstance();
 
 private slots:
 	void on_HomeButton_clicked();
@@ -22,6 +24,7 @@ private slots:
 
 signals:
 	void HomeClicked();
+	void SignUpClicked();
 
 public:
 	SignUpWidget(QWidget *parent = nullptr);

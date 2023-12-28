@@ -77,7 +77,7 @@ namespace Core
 		return true;
 	}
 
-	bool ChatDB::GetUsers(std::string username, TCPChat::Client::users_info_dto& data)
+	bool ChatDB::GetUsers(std::string username, TCPChat::Client::user_info_dto& data)
 	{
 		std::string query_string = "SELECT username FROM chat_user WHERE NOT username = '";
 		query_string += username + "';";

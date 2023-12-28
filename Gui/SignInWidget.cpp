@@ -4,12 +4,12 @@ SignInWidget::SignInWidget(QWidget* parent)
 	: QWidget(parent)
 {
 	ui = new Ui::SignInWidgetClass;
-	ChatWidget = new Chat;
-	client = &Instance::client;
 	ui->setupUi(this);
 
 	connect(ui->HomeButton, &QPushButton::clicked, this, &SignInWidget::on_HomeButton_clicked);
 	connect(ui->SignInToButton, &QPushButton::clicked, this, &SignInWidget::on_SignInToButton_clicked);
+
+	ChatWidget = new Chat();
 
 	ui->stackedWidget->insertWidget(1, ChatWidget);
 
@@ -23,26 +23,30 @@ void SignInWidget::on_HomeButton_clicked()
 
 void SignInWidget::on_SignInToButton_clicked()
 {
-	QPushButton* button = qobject_cast<QPushButton*>(sender());
+	static bool already_clicked = false;
 
-	QString login = ui->LoginLineEdit->text();
-	QString password = ui->PasswordLineEdit->text();
+	if (already_clicked == false)
+	{
+		std::cout << "SIGN IN BUTTON CLICKED\n";
 
-	if (login.isEmpty() || password.isEmpty())
-	{
-		QMessageBox::critical(this, "Error", "Login and Password could not be empty!");
-	}
-	else if (login.size() > 255 || password.size() > 255)
-	{
-		QMessageBox::critical(this, "Message error", "Login and Password could not be greater than 255 symbols!");
-	}
-	else
-	{
-		if (button)
+		QString login = ui->LoginLineEdit->text();
+		QString password = ui->PasswordLineEdit->text();
+
+		if (login.isEmpty() || password.isEmpty())
 		{
-			if (client->SendUserInfoSignIn(login.toStdString(), password.toStdString()))
+			QMessageBox::critical(this, "Error", "Login and Password could not be empty!");
+		}
+		else if (login.size() > 255 || password.size() > 255)
+		{
+			QMessageBox::critical(this, "Message error", "Login and Password could not be greater than 255 symbols!");
+		}
+		else
+		{
+			if (client.SendUserInfoSignIn(login.toStdString(), password.toStdString()))
 			{
+				client.RecieveUsersInfo();
 				ui->stackedWidget->setCurrentIndex(1);
+				already_clicked = true;
 			}
 			else
 			{
