@@ -148,25 +148,37 @@ namespace TCPChat
 	{
 		std::string recieved_buffer;
 		int recieved_buffer_size = 0;
+		bool is_any_client_connected = false;
 
-		if (recv(client_socket, (char*)&recieved_buffer_size, sizeof(int), 0) <= 0)
+		if (recv(client_socket, (char*)&is_any_client_connected, sizeof(bool), 0) <= 0)
 		{
 			std::cout << WSAGetLastError() << '\n';
-			perror("RecieveUsersInfo(): recieved_buffer_size recv");
+			perror("RecieveUsersInfo(): is_any_client_connected recv");
 		}
 
-		recieved_buffer.resize(recieved_buffer_size);
+		std::cout << "IS any client connected = " << is_any_client_connected;
 
-		if (recv(client_socket, recieved_buffer.data(), recieved_buffer_size, 0) <= 0)
+		if (is_any_client_connected == true)
 		{
-			std::cout << WSAGetLastError() << '\n';
-			perror("RecieveUsersInfo(): recieved_buffer_size recv");
+			if (recv(client_socket, (char*)&recieved_buffer_size, sizeof(int), 0) <= 0)
+			{
+				std::cout << WSAGetLastError() << '\n';
+				perror("RecieveUsersInfo(): recieved_buffer_size recv");
+			}
+
+			recieved_buffer.resize(recieved_buffer_size);
+
+			if (recv(client_socket, recieved_buffer.data(), recieved_buffer_size, 0) <= 0)
+			{
+				std::cout << WSAGetLastError() << '\n';
+				perror("RecieveUsersInfo(): recieved_buffer_size recv");
+			}
+
+			json json_data = json::parse(recieved_buffer);
+
+			uinfo_dto.usernames = json_data["usernames"];
+			uinfo_dto.client_count = json_data["client_count"];
 		}
-
-		json json_data = json::parse(recieved_buffer);
-
-		uinfo_dto.usernames = json_data["usernames"];
-		uinfo_dto.client_count = json_data["client_count"];
 
 		std::cout << "USERNAMES: ";
 		for (const auto& username : uinfo_dto.usernames)
@@ -174,6 +186,31 @@ namespace TCPChat
 			std::cout << username << '\n';
 		}
 		std::cout << "Client count: " << uinfo_dto.client_count << '\n';
+	}
+
+	void Client::SendMessageTest(const std::string message, const std::string from, const std::string to)
+	{
+		json json_data;
+		json_data["message"] = message;
+		json_data["from"] = from;
+		json_data["to"] = to;
+		std::string serialized_data = json_data.dump();
+		int serialized_data_size = serialized_data.size();
+
+		if (send(client_socket, (const char*)&serialized_data_size, sizeof(int), 0) <= 0)
+		{
+			std::cout << WSAGetLastError() << '\n';
+			perror("SendMessageTest(): recieved_buffer_size send");
+		}
+
+		if (send(client_socket, serialized_data.c_str(), serialized_data_size, 0) <= 0)
+		{
+			std::cout << WSAGetLastError() << '\n';
+			perror("SendMessageTest(): recieved_buffer send");
+		}
+
+
+		std::cout << "Message Send: " << message << "\n\n";
 	}
 
 	void Client::Disconnect()

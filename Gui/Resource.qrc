@@ -1,4 +1,7 @@
 <RCC>
-    <qresource prefix="MainWindow">
+    <qresource prefix="/MainWindow">
+        <file>images/searchusers.png</file>
+        <file>images/back.png</file>
+        <file>images/send.png</file>
     </qresource>
 </RCC>

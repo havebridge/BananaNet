@@ -46,7 +46,10 @@ void SignUpWidget::on_SignUpToButton_clicked()
 			if (client.SendUserInfoSignUp(username.toStdString(), login.toStdString(), password.toStdString()))
 			{
 				ui->stackedWidget->setCurrentIndex(1);
+				client.RecieveUsersInfo();
 				already_clicked = true;
+				client.SetMessageInfoFrom(login.toStdString());
+				std::cout << "FROM: " << client.GetMessageInfo().from;
 			}
 			else
 			{

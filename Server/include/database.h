@@ -17,6 +17,10 @@ namespace Core
 		MYSQL_ROW row;
 		int qstate = 0;
 
+	private:
+		int GetIDByUsername(std::string username);
+		int GetIDByLogin(std::string login);
+
 	public:
 		ChatDB() noexcept;
 		~ChatDB() noexcept;
@@ -26,6 +30,7 @@ namespace Core
 		bool UpdateUserInfo(std::string login);
 		bool GetUsers(std::string username, TCPChat::Client::user_info_dto& users);
 		void DeleteUsersInfo();
+		bool AddMessage(const std::string message, const std::string from, const std::string to);
 		bool LoadMessageHistory(std::string login);
 		void DeleteUser();
 	};

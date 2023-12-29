@@ -6,12 +6,15 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1292</width>
+    <width>1291</width>
     <height>821</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Chat</string>
+  </property>
+  <property name="styleSheet">
+   <string notr="true"/>
   </property>
   <widget class="QStackedWidget" name="stackedWidget">
    <property name="geometry">
@@ -25,7 +28,398 @@
    <property name="styleSheet">
     <string notr="true">background-color: rgba(12,14,14,255);</string>
    </property>
-   <widget class="QWidget" name="page"/>
+   <widget class="QWidget" name="chats">
+    <widget class="QWidget" name="widget" native="true">
+     <property name="geometry">
+      <rect>
+       <x>0</x>
+       <y>15</y>
+       <width>493</width>
+       <height>101</height>
+      </rect>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">background: rgba(28, 28, 28, 1);
+</string>
+     </property>
+     <widget class="QLabel" name="label">
+      <property name="geometry">
+       <rect>
+        <x>205</x>
+        <y>19</y>
+        <width>101</width>
+        <height>29</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <pointsize>24</pointsize>
+       </font>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">color: rgba(255, 255, 255, 1); 
+background-color: transparent;</string>
+      </property>
+      <property name="text">
+       <string>CHATS</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="pushButton">
+      <property name="geometry">
+       <rect>
+        <x>410</x>
+        <y>19</y>
+        <width>29</width>
+        <height>27</height>
+       </rect>
+      </property>
+      <property name="styleSheet">
+       <string notr="true"/>
+      </property>
+      <property name="text">
+       <string/>
+      </property>
+     </widget>
+     <widget class="QLineEdit" name="Chats_SearchLineChat">
+      <property name="geometry">
+       <rect>
+        <x>51</x>
+        <y>60</y>
+        <width>390</width>
+        <height>34</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <pointsize>20</pointsize>
+       </font>
+      </property>
+     </widget>
+    </widget>
+    <widget class="QWidget" name="widget_3" native="true">
+     <property name="geometry">
+      <rect>
+       <x>0</x>
+       <y>750</y>
+       <width>493</width>
+       <height>81</height>
+      </rect>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">background: rgba(28, 28, 28, 1);
+</string>
+     </property>
+    </widget>
+    <widget class="QWidget" name="widget_6" native="true">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>120</y>
+       <width>481</width>
+       <height>631</height>
+      </rect>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">background-color: rgba(14, 14, 14, 1);
+</string>
+     </property>
+    </widget>
+   </widget>
+   <widget class="QWidget" name="users">
+    <widget class="QListWidget" name="listWidget">
+     <property name="geometry">
+      <rect>
+       <x>0</x>
+       <y>121</y>
+       <width>493</width>
+       <height>631</height>
+      </rect>
+     </property>
+     <property name="lineWidth">
+      <number>1</number>
+     </property>
+     <property name="sortingEnabled">
+      <bool>true</bool>
+     </property>
+    </widget>
+    <widget class="QWidget" name="widget_2" native="true">
+     <property name="geometry">
+      <rect>
+       <x>0</x>
+       <y>15</y>
+       <width>493</width>
+       <height>101</height>
+      </rect>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">background: rgba(28, 28, 28, 1);
+</string>
+     </property>
+     <widget class="QLabel" name="label_2">
+      <property name="geometry">
+       <rect>
+        <x>205</x>
+        <y>19</y>
+        <width>101</width>
+        <height>29</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <pointsize>24</pointsize>
+       </font>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">color: rgba(255, 255, 255, 1); 
+background-color: transparent;</string>
+      </property>
+      <property name="text">
+       <string>USERS</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="backButton">
+      <property name="geometry">
+       <rect>
+        <x>410</x>
+        <y>19</y>
+        <width>27</width>
+        <height>27</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string/>
+      </property>
+     </widget>
+     <widget class="QLineEdit" name="Users_SearchLineUsers">
+      <property name="geometry">
+       <rect>
+        <x>51</x>
+        <y>60</y>
+        <width>390</width>
+        <height>34</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <pointsize>20</pointsize>
+       </font>
+      </property>
+     </widget>
+    </widget>
+    <widget class="QWidget" name="widget_4" native="true">
+     <property name="geometry">
+      <rect>
+       <x>0</x>
+       <y>750</y>
+       <width>493</width>
+       <height>81</height>
+      </rect>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">background: rgba(28, 28, 28, 1);
+</string>
+     </property>
+    </widget>
+   </widget>
+   <widget class="QWidget" name="message">
+    <widget class="QWidget" name="widget_5" native="true">
+     <property name="geometry">
+      <rect>
+       <x>0</x>
+       <y>15</y>
+       <width>493</width>
+       <height>101</height>
+      </rect>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">background: rgba(28, 28, 28, 1);
+</string>
+     </property>
+     <widget class="QLabel" name="label_3">
+      <property name="geometry">
+       <rect>
+        <x>205</x>
+        <y>19</y>
+        <width>101</width>
+        <height>29</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <pointsize>24</pointsize>
+       </font>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">color: rgba(255, 255, 255, 1); 
+background-color: transparent;</string>
+      </property>
+      <property name="text">
+       <string>CHATS</string>
+      </property>
+     </widget>
+     <widget class="QLineEdit" name="Message_SearchLineChats">
+      <property name="geometry">
+       <rect>
+        <x>51</x>
+        <y>60</y>
+        <width>390</width>
+        <height>34</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <pointsize>20</pointsize>
+       </font>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="ButtonChat">
+      <property name="geometry">
+       <rect>
+        <x>410</x>
+        <y>19</y>
+        <width>29</width>
+        <height>27</height>
+       </rect>
+      </property>
+      <property name="styleSheet">
+       <string notr="true"/>
+      </property>
+      <property name="text">
+       <string/>
+      </property>
+     </widget>
+    </widget>
+    <widget class="QWidget" name="widget_7" native="true">
+     <property name="geometry">
+      <rect>
+       <x>490</x>
+       <y>15</y>
+       <width>811</width>
+       <height>101</height>
+      </rect>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">background-color: rgba(28, 28, 28, 1);
+</string>
+     </property>
+     <widget class="QLabel" name="avatar">
+      <property name="geometry">
+       <rect>
+        <x>105</x>
+        <y>16</y>
+        <width>80</width>
+        <height>80</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string/>
+      </property>
+      <property name="pixmap">
+       <pixmap>images/avatar_photo-resizer.ru (1).png</pixmap>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="backButtonChat">
+      <property name="geometry">
+       <rect>
+        <x>25</x>
+        <y>24</y>
+        <width>54</width>
+        <height>54</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string/>
+      </property>
+     </widget>
+    </widget>
+    <widget class="QWidget" name="widget_8" native="true">
+     <property name="geometry">
+      <rect>
+       <x>0</x>
+       <y>750</y>
+       <width>493</width>
+       <height>81</height>
+      </rect>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">background: rgba(28, 28, 28, 1);
+</string>
+     </property>
+    </widget>
+    <widget class="QWidget" name="widget_9" native="true">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>120</y>
+       <width>481</width>
+       <height>631</height>
+      </rect>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">background-color: rgba(14, 14, 14, 1);
+</string>
+     </property>
+    </widget>
+    <widget class="QWidget" name="widget_10" native="true">
+     <property name="geometry">
+      <rect>
+       <x>493</x>
+       <y>116</y>
+       <width>821</width>
+       <height>641</height>
+      </rect>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">background-color: rgba(0, 0, 0, 1);
+</string>
+     </property>
+    </widget>
+    <widget class="QWidget" name="widget_11" native="true">
+     <property name="geometry">
+      <rect>
+       <x>493</x>
+       <y>750</y>
+       <width>821</width>
+       <height>81</height>
+      </rect>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">background: rgba(0, 0, 0, 1);
+</string>
+     </property>
+     <widget class="QLineEdit" name="Message_LineMessageEdit">
+      <property name="geometry">
+       <rect>
+        <x>56</x>
+        <y>16</y>
+        <width>657</width>
+        <height>54</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <pointsize>20</pointsize>
+       </font>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="Message_SendButton">
+      <property name="geometry">
+       <rect>
+        <x>735</x>
+        <y>20</y>
+        <width>54</width>
+        <height>54</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string/>
+      </property>
+     </widget>
+    </widget>
+   </widget>
   </widget>
  </widget>
  <layoutdefault spacing="6" margin="11"/>

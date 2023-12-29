@@ -103,4 +103,83 @@ namespace Core
 
 		return true;
 	}
+
+	int ChatDB::GetIDByUsername(std::string username)
+	{
+		int user_id = 0;
+
+		std::string query_string = "SELECT id FROM chat_user WHERE username = '";
+		query_string += username + "';";
+
+
+		qstate = mysql_query(&mysql, query_string.c_str());
+
+		if (qstate != 0)
+		{
+			std::cout << mysql_error(&mysql) << std::endl;
+			mysql_close(connection);
+			return 0;
+		}
+
+		res = mysql_store_result(&mysql);
+
+		if ((row = mysql_fetch_row(res)))
+		{
+			int user_id = atoi(row[0]);
+		}
+
+		return user_id;
+	}
+
+
+	int ChatDB::GetIDByLogin(std::string login)
+	{
+		int user_id = 0;
+
+		std::string query_string = "SELECT id FROM chat_user WHERE login = '";
+		query_string += login + "';";
+
+
+		qstate = mysql_query(&mysql, query_string.c_str());
+
+		if (qstate != 0)
+		{
+			std::cout << mysql_error(&mysql) << std::endl;
+			mysql_close(connection);
+			return 0;
+		}
+
+		res = mysql_store_result(&mysql);
+
+		if ((row = mysql_fetch_row(res)))
+		{
+			int user_id = atoi(row[0]);
+		}
+
+		return user_id;
+	}
+
+	bool ChatDB::AddMessage(const std::string message, const std::string from, const std::string to)
+	{
+		int user_id_form = GetIDByLogin(from);
+		int user_id_to= GetIDByUsername(to);
+
+		std::string query_string = "INSERT INTO chat_line (sender_id, receiver_id, message_text) VALUES ('";
+		query_string += user_id_form + "','";
+		query_string += user_id_to + "','";
+		query_string += message + "');";
+		
+		qstate = mysql_query(&mysql, query_string.c_str());
+
+		if (qstate != 0)
+		{
+			std::cout << mysql_error(&mysql) << std::endl;
+			mysql_close(connection);
+			return false;
+		}
+
+		mysql_store_result(&mysql);
+
+		return true;
+	}
 }

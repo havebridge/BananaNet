@@ -32,6 +32,13 @@ namespace TCPChat
 			int client_count = 0;
 		} uinfo_dto;
 
+		struct message_info
+		{
+			std::string message;
+			std::string from;
+			std::string to;
+		} message;
+
 		WSAData wsa;
 
 		SOCKET client_socket;
@@ -77,11 +84,16 @@ namespace TCPChat
 		//Client operator=(const Client&) = delete;
 		~Client();
 
+		user_info_dto GetDto() { return uinfo_dto; }
+		message_info GetMessageInfo() { return message; }
+		void SetMessageInfoFrom(std::string from) { message.from = from; }
+
 	public:
 		bool Connect(std::string ip, int port);
 		bool SendUserInfoSignUp(std::string username, std::string login, std::string password);
 		bool SendUserInfoSignIn(std::string login, std::string password);
 		void RecieveUsersInfo();
+		void SendMessageTest(const std::string message, const std::string from, const std::string to);
 		void Disconnect();
 		void Run();
 

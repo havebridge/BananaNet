@@ -66,7 +66,7 @@ namespace TCPChat
 		server_info.sin_family = AF_INET;
 		server_info.sin_port = htons(port);
 		server_info.sin_addr.s_addr = inet_addr(ip.c_str());
-		
+
 		ZeroMemory(server_info.sin_zero, 8);
 
 		if (bind(server_socket, (const sockaddr*)&server_info, server_info_lenght) == SOCKET_ERROR)
@@ -105,7 +105,7 @@ namespace TCPChat
 		int client_info_lenght = sizeof(client_info);
 		Client::user_info uinfo = {};
 		Client::user_info_dto uinfo_dto = {};
-		
+
 		SOCKET client_socket = accept(server_socket, (sockaddr*)&client_info, &client_info_lenght);
 		std::cout << "Client Socket:" << client_socket << '\n';
 		if (client_socket == INVALID_SOCKET)
@@ -115,6 +115,7 @@ namespace TCPChat
 			return;
 		}
 
+		client_count++;
 		std::string recieved_buffer;
 		int recieved_buffer_size = 0;
 
@@ -139,7 +140,7 @@ namespace TCPChat
 		uinfo.password = json_data["password"];
 		uinfo.type = static_cast<Client::ConnectionType>(json_data["type"].get<int>());
 
-		
+
 		HN_INFO("username: {0} login: {1} password: {2} type: {3}", uinfo.username, uinfo.login, uinfo.password, uinfo.type);
 
 
@@ -147,13 +148,16 @@ namespace TCPChat
 		{
 		case Client::ConnectionType::SIGN_UP:
 		{
+			//TODO: check if username or login already has in db, if so send to client appropriate message
 			std::unique_ptr<Client> client(new Client(client_info, client_socket, uinfo));
 			client_mutex.lock();
 			HN_INFO("Client connected IP: {0} PORT: {1}", client->GetHost(), client->GetPort());
 			db.InsertUser(&uinfo, client_info);
 			clients.emplace_back(std::move(client));
+			uinfo_dto.client_count = client_count - 1;
+			db.GetUsers(uinfo.login, uinfo_dto);
+			SendClientsInfo(uinfo_dto, client_socket);
 			client_mutex.unlock();
-			client_count++;
 		} break;
 		case Client::ConnectionType::SIGN_IN:
 		{
@@ -163,11 +167,11 @@ namespace TCPChat
 				client_mutex.lock();
 				std::cout << "Client Socket:" << client_socket << '\n';
 				uinfo_dto.client_count = client_count - 1;
-				
+
 				db.UpdateUserInfo(uinfo.login);
 				db.GetUsers(uinfo.login, uinfo_dto);
 				SendClientsInfo(uinfo_dto, client_socket);
-			
+
 				client_mutex.unlock();
 				//TODO(): get client count with id in db
 				//db.LoadMessageHistory();
@@ -193,8 +197,8 @@ namespace TCPChat
 		HN_INFO("All Clients:");
 		for (const auto& client : clients)
 		{
-			HN_INFO("Client info IP: {0} PORT: {1} USERNAME: {2} LOGIN: {3} PASSWORD: {4}", client->GetHost(), client->GetPort(), 
-					client->uinfo.username, client->uinfo.login, client->uinfo.password);
+			HN_INFO("Client info IP: {0} PORT: {1} USERNAME: {2} LOGIN: {3} PASSWORD: {4}", client->GetHost(), client->GetPort(),
+				client->uinfo.username, client->uinfo.login, client->uinfo.password);
 		}
 	}
 
@@ -212,14 +216,22 @@ namespace TCPChat
 	}
 
 	bool Server::SendClientsInfo(const Client::user_info_dto& uinfo, SOCKET client_socket)
-	{		
+	{
 		json json_data;
 		json_data["usernames"] = uinfo.usernames;
 		json_data["client_count"] = uinfo.client_count;
 		std::string serialized_data = json_data.dump();
 		int serialized_data_size = serialized_data.size();
+		bool is_any_client_connected = uinfo.client_count == 0 ? false : true;
+		std::cout << "IS any client connected = " << is_any_client_connected;
 
-	
+		if (send(client_socket, (const char*)&is_any_client_connected, sizeof(bool), 0) <= 0)
+		{
+			HN_ERROR("SendClientsInfo(): send is_any_client_connected");
+			HN_ERROR("WSA Error: {0}", WSAGetLastError());
+			return false;
+		}
+
 		if (send(client_socket, (const char*)&serialized_data_size, sizeof(int), 0) <= 0)
 		{
 			HN_ERROR("SendClientsInfo(): send serialized_data");
@@ -239,25 +251,44 @@ namespace TCPChat
 
 	void Server::ProcessData()
 	{
+		std::cout << "PROCESS DATA\n";
 		{
 			std::lock_guard<std::mutex> client_lock(client_mutex);
-			for (auto it = clients.begin(), end = clients.end(); it != end; ++it)
+			for (const auto& client : clients)
 			{
-				auto& client = *it;
-				if (client)
+				Client::message_info message = {};
+
+				std::string recieved_buffer;
+				int recieved_buffer_size = 0;
+
+				if (recv(client.get()->client_socket, (char*)&recieved_buffer_size, sizeof(int), 0) <= 0)
 				{
-					std::cout << "OK\n";
-					//TODO(): process data
+					HN_ERROR("ClientHandler(): recieved_buffer_size recv");
+					HN_ERROR("WSA Error: {0}", WSAGetLastError());
 				}
-				else if (client->is_connected == false)
+
+				recieved_buffer.resize(recieved_buffer_size);
+
+				if (recv(client.get()->client_socket, recieved_buffer.data(), recieved_buffer_size, 0) <= 0)
 				{
-					client->client_handler.lock();
-					HN_INFO("Client disconnected IP: {0} PORT: {1}", client->GetHost(), client->GetPort());
-					client->client_handler.unlock();
-					client.release();
-					clients.erase(it);
+					HN_ERROR("ClientHandler(): recieved_buffer_size recv");
+					HN_ERROR("WSA Error: {0}", WSAGetLastError());
 				}
+
+				json json_data = json::parse(recieved_buffer);
+
+				message.message = json_data["message"];
+				message.from = json_data["from"];
+				message.to = json_data["to"];
+
+
+				HN_INFO("message: {0} from: {1} to: {2}", message.message, message.from, message.to);
+
+				db.AddMessage(message.message, message.from, message.to);
+				//std::cout << "Message Send: " << message << "\n\n";
 			}
+
+
 		}
 
 		if (running)
@@ -266,19 +297,19 @@ namespace TCPChat
 		}
 	}
 
+	/*void Server::ClientHandler()
+	{
+		if (running == true)
+		{
+			thread_pool.AddJob(std::bind(&Server::))
+		}
+	}*/
+
 	void Server::Start()
 	{
 		Init();
 
-		/*while (is_first_client_connected == false || is_second_client_connected == false)
-		{
-			ClientsHandler();
-		}*/
-		//message_thread = (std::thread(&Server::ProcessMessage, this));
-		//while (true)
-		//{
-			//ProcessMessage();
-		//}
+		//std::cout << "EJSDHNJFHSDJFHJSKDFLSD";
 	}
 
 

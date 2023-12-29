@@ -30,6 +30,13 @@ namespace TCPChat
 			int client_count = 0;
 		};
 
+		struct message_info
+		{
+			std::string message;
+			std::string from;
+			std::string to;
+		} message;
+
 		struct sockaddr_in client_info;
 		SOCKET client_socket;
 		bool is_connected = true;
