@@ -43,6 +43,7 @@ namespace TCPChat
 		void GetClientsInfo();
 		bool SearchForClient(Client::user_info* uinfo);
 		bool SendClientsInfo(const Client::user_info_dto& uinfo, SOCKET client_socket);
+		void UpdateSocket(SOCKET new_socket, const std::string login);
 		void ClientHandler();
 		void ProcessData();
 		void JoinLoop() { thread_pool.Join(); }

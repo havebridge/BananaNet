@@ -125,7 +125,7 @@ namespace Core
 
 		if ((row = mysql_fetch_row(res)))
 		{
-			int user_id = atoi(row[0]);
+			user_id = atoi(row[0]);
 		}
 
 		return user_id;
@@ -153,7 +153,7 @@ namespace Core
 
 		if ((row = mysql_fetch_row(res)))
 		{
-			int user_id = atoi(row[0]);
+			user_id = atoi(row[0]);
 		}
 
 		return user_id;
@@ -161,12 +161,14 @@ namespace Core
 
 	bool ChatDB::AddMessage(const std::string message, const std::string from, const std::string to)
 	{
+		std::cout << "ADD MESSAGE FUNC\n";
+
 		int user_id_form = GetIDByLogin(from);
 		int user_id_to= GetIDByUsername(to);
 
 		std::string query_string = "INSERT INTO chat_line (sender_id, receiver_id, message_text) VALUES ('";
-		query_string += user_id_form + "','";
-		query_string += user_id_to + "','";
+		query_string += std::to_string(user_id_form) + "','";
+		query_string += std::to_string(user_id_to) + "','";
 		query_string += message + "');";
 		
 		qstate = mysql_query(&mysql, query_string.c_str());

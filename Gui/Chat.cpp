@@ -42,16 +42,10 @@ Chat::Chat(QWidget* parent)
 		"background-color: #c0c0c0;" // Цвет фона при наведении
 		"}"
 		"QPushButton {"
-		"border: 1px solid gray;"
+		"border: 5px solid gray;"
 		"border-radius: 5px;"
-		"padding: 5px;"
-		"background-color: #ffffff;" // Цвет фона кнопки
-		"}"
-		"QPushButton:hover {"
-		"background-color: #e0e0e0;" // Цвет фона кнопки при наведении
-		"}"
-		"QPushButton:pressed {"
-		"background-color: #d0d0d0;" // Цвет фона кнопки при нажатии
+		"padding: 10px;"
+		"background-color: gray;" // Цвет фона кнопки
 		"}");
 
 	ui->Chats_SearchLineChat->setStyleSheet("background-color: rgba(147, 147, 147, 1);"

@@ -84,8 +84,7 @@ namespace TCPChat
 		}
 
 		thread_pool.AddJob(std::bind(&Server::ClientHandler, this));
-		thread_pool.AddJob(std::bind(&Server::ProcessData, this));
-
+		//thread_pool.AddJob(std::bind(&Server::ProcessData, this));
 #if 0
 		BOOL bNewBehavior = FALSE;
 		DWORD dwBytesReturned = 0;
@@ -101,6 +100,7 @@ namespace TCPChat
 
 	void Server::ClientHandler()
 	{
+		std::cout << "CLIENT HANDER FUNC\n";
 		struct sockaddr_in client_info;
 		int client_info_lenght = sizeof(client_info);
 		Client::user_info uinfo = {};
@@ -166,13 +166,16 @@ namespace TCPChat
 				HN_INFO("Client is found");
 				client_mutex.lock();
 				std::cout << "Client Socket:" << client_socket << '\n';
+				UpdateSocket(client_socket, uinfo.login);
 				uinfo_dto.client_count = client_count - 1;
 
 				db.UpdateUserInfo(uinfo.login);
 				db.GetUsers(uinfo.login, uinfo_dto);
 				SendClientsInfo(uinfo_dto, client_socket);
 
+
 				client_mutex.unlock();
+
 				//TODO(): get client count with id in db
 				//db.LoadMessageHistory();
 			}
@@ -189,6 +192,11 @@ namespace TCPChat
 		if (running)
 		{
 			thread_pool.AddJob(std::bind(&Server::ClientHandler, this));
+		}
+
+		if (clients.size() > 1)
+		{
+			thread_pool.AddJob(std::bind(&Server::ProcessData, this));
 		}
 	}
 
@@ -213,6 +221,15 @@ namespace TCPChat
 		}
 
 		return false;
+	}
+
+	void Server::UpdateSocket(SOCKET new_socket, const std::string login)
+	{
+		auto it = std::find_if(clients.begin(), clients.end(), [&](const std::unique_ptr<Client>& client) {
+			return client->uinfo.login == login;
+			});
+
+		(*it)->client_socket = new_socket;
 	}
 
 	bool Server::SendClientsInfo(const Client::user_info_dto& uinfo, SOCKET client_socket)
@@ -251,65 +268,135 @@ namespace TCPChat
 
 	void Server::ProcessData()
 	{
-		std::cout << "PROCESS DATA\n";
+		std::cout << "PROCESS DATA FUNC\n";
+
+		//TODO: while loop online status check
+		//std::unique_lock<std::mutex> client_lock(client_mutex);
+		//client_lock.lock();
+		//if (!clients.empty())
+		//{
+		//	for (const auto& client : clients)
+		//	{
+		//		if (client)
+		//		{
+		//			std::cout << "CONST AUTO& CLIENT : CLIENTS\n";
+		//			Client::message_info message = {};
+		//			SOCKET client_socket = client->client_socket;
+
+		//			std::string recieved_buffer;
+		//			int recieved_buffer_size = 0;
+		//			unsigned long mode = 1;
+		//			if (ioctlsocket(client_socket, FIONBIO, &mode) != 0)
+		//			{
+		//				HN_ERROR("ProcessData(): ioctlsocket");
+		//				HN_ERROR("WSA Error: {0}", WSAGetLastError());
+		//			}
+
+		//			if (recv(client_socket, (char*)&recieved_buffer_size, sizeof(int), 0) <= 0)
+		//			{
+		//				HN_ERROR("ClientHandler(): recieved_buffer_size recv");
+		//				HN_ERROR("WSA Error: {0}", WSAGetLastError());
+		//			}
+
+		//			recieved_buffer.resize(recieved_buffer_size);
+
+		//			if (recv(client_socket, recieved_buffer.data(), recieved_buffer_size, 0) <= 0)
+		//			{
+		//				HN_ERROR("ClientHandler(): recieved_buffer_size recv");
+		//				HN_ERROR("WSA Error: {0}", WSAGetLastError());
+		//			}
+
+
+		//			mode = 0;
+		//			if (ioctlsocket(client_socket, FIONBIO, &mode) != 0)
+		//			{
+		//				HN_ERROR("ProcessData(): ioctlsocket");
+		//				HN_ERROR("WSA Error: {0}", WSAGetLastError());
+		//			}
+		//			json json_data = json::parse(recieved_buffer);
+
+		//			message.message = json_data["message"];
+		//			message.from = json_data["from"];
+		//			message.to = json_data["to"];
+
+
+		//			HN_INFO("message: {0} from: {1} to: {2}", message.message, message.from, message.to);
+
+		//			db.AddMessage(message.message, message.from, message.to);
+		//			//std::cout << "Message Send: " << message << "\n\n";
+		//		}
+		//	}
+		//}
+
+		//client_lock.unlock();
+
 		{
-			std::lock_guard<std::mutex> client_lock(client_mutex);
-			for (const auto& client : clients)
+			std::lock_guard lock(client_mutex);
+			for (auto it = clients.begin(), end = clients.end(); it != end; ++it)
 			{
-				Client::message_info message = {};
-
-				std::string recieved_buffer;
-				int recieved_buffer_size = 0;
-
-				if (recv(client.get()->client_socket, (char*)&recieved_buffer_size, sizeof(int), 0) <= 0)
+				auto& client = *it;
+				if (client)
 				{
-					HN_ERROR("ClientHandler(): recieved_buffer_size recv");
-					HN_ERROR("WSA Error: {0}", WSAGetLastError());
+					std::this_thread::sleep_for(std::chrono::microseconds(500));
+					std::cout << "CONST AUTO& CLIENT : CLIENTS\n";
+					Client::message_info message = {};
+					SOCKET client_socket = client->client_socket;
+
+
+					std::string recieved_buffer;
+					int recieved_buffer_size = 0;
+					unsigned long mode = 1;
+					if (ioctlsocket(client_socket, FIONBIO, &mode) != 0)
+					{
+						HN_ERROR("ProcessData(): ioctlsocket");
+						HN_ERROR("WSA Error: {0}", WSAGetLastError());
+					}
+
+					if (recv(client_socket, (char*)&recieved_buffer_size, sizeof(int), 0) <= 0)
+					{
+						HN_ERROR("ClientHandler(): recieved_buffer_size recv");
+						HN_ERROR("WSA Error: {0}", WSAGetLastError());
+						continue;
+					}
+					mode = 0;
+					if (ioctlsocket(client_socket, FIONBIO, &mode) != 0)
+					{
+						HN_ERROR("ProcessData(): ioctlsocket");
+						HN_ERROR("WSA Error: {0}", WSAGetLastError());
+					}
+
+					recieved_buffer.resize(recieved_buffer_size);
+
+					if (recv(client_socket, recieved_buffer.data(), recieved_buffer_size, 0) <= 0)
+					{
+						HN_ERROR("ClientHandler(): recieved_buffer_size recv");
+						HN_ERROR("WSA Error: {0}", WSAGetLastError());
+					}
+
+
+					json json_data = json::parse(recieved_buffer);
+
+					message.message = json_data["message"];
+					message.from = json_data["from"];
+					message.to = json_data["to"];
+
+
+					HN_INFO("message: {0} from: {1} to: {2}", message.message, message.from, message.to);
+
+					db.AddMessage(message.message, message.from, message.to);
 				}
 
-				recieved_buffer.resize(recieved_buffer_size);
-
-				if (recv(client.get()->client_socket, recieved_buffer.data(), recieved_buffer_size, 0) <= 0)
-				{
-					HN_ERROR("ClientHandler(): recieved_buffer_size recv");
-					HN_ERROR("WSA Error: {0}", WSAGetLastError());
-				}
-
-				json json_data = json::parse(recieved_buffer);
-
-				message.message = json_data["message"];
-				message.from = json_data["from"];
-				message.to = json_data["to"];
-
-
-				HN_INFO("message: {0} from: {1} to: {2}", message.message, message.from, message.to);
-
-				db.AddMessage(message.message, message.from, message.to);
-				//std::cout << "Message Send: " << message << "\n\n";
 			}
-
-
 		}
-
 		if (running)
 		{
 			thread_pool.AddJob(std::bind(&Server::ProcessData, this));
 		}
 	}
 
-	/*void Server::ClientHandler()
-	{
-		if (running == true)
-		{
-			thread_pool.AddJob(std::bind(&Server::))
-		}
-	}*/
-
 	void Server::Start()
 	{
 		Init();
-
-		//std::cout << "EJSDHNJFHSDJFHJSKDFLSD";
 	}
 
 

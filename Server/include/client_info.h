@@ -77,5 +77,7 @@ namespace TCPChat
 
 			return stream << result;
 		}
+
+		bool GetStatus() { return is_connected; }
 	};
 }
