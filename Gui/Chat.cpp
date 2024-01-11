@@ -33,19 +33,30 @@ Chat::Chat(QWidget* parent)
 		"QListWidget {"
 		"border: none;"
 		"border-radius: 5px;"
-		"background-color: rgba(14, 14, 14, 1);" // Цвет фона
+		"background-color: rgba(14, 14, 14, 1);" 
 		"}"
 		"QListWidget::item {"
 		"padding: 5px;"
 		"}"
 		"QListWidget::item:hover {"
-		"background-color: #c0c0c0;" // Цвет фона при наведении
+		"background-color: #c0c0c0;" 
 		"}"
 		"QPushButton {"
 		"border: 5px solid gray;"
 		"border-radius: 5px;"
+<<<<<<< HEAD
 		"padding: 10px;"
 		"background-color: gray;" // Цвет фона кнопки
+=======
+		"padding: 5px;"
+		"background-color: gray;" 
+		"}"
+		"QPushButton:hover {"
+		"background-color: #e0e0e0;" 
+		"}"
+		"QPushButton:pressed {"
+		"background-color: #d0d0d0;" 
+>>>>>>> a8cbf81b51c814c2c51036f10b9e146a3bdf10a2
 		"}");
 
 	ui->Chats_SearchLineChat->setStyleSheet("background-color: rgba(147, 147, 147, 1);"
