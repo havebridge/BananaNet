@@ -3,5 +3,6 @@
         <file>images/searchusers.png</file>
         <file>images/back.png</file>
         <file>images/send.png</file>
+        <file>images/avatar.png</file>
     </qresource>
 </RCC>

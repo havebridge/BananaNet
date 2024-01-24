@@ -315,7 +315,7 @@ background-color: transparent;</string>
        <string/>
       </property>
       <property name="pixmap">
-       <pixmap>images/avatar_photo-resizer.ru (1).png</pixmap>
+       <pixmap>images/avatar.png</pixmap>
       </property>
       <property name="alignment">
        <set>Qt::AlignCenter</set>
@@ -329,6 +329,29 @@ background-color: transparent;</string>
         <width>54</width>
         <height>54</height>
        </rect>
+      </property>
+      <property name="text">
+       <string/>
+      </property>
+     </widget>
+     <widget class="QLabel" name="user_name">
+      <property name="geometry">
+       <rect>
+        <x>190</x>
+        <y>25</y>
+        <width>571</width>
+        <height>61</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <pointsize>24</pointsize>
+        <bold>true</bold>
+       </font>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">color: rgba(255, 255, 255, 1); 
+background-color: transparent;</string>
       </property>
       <property name="text">
        <string/>

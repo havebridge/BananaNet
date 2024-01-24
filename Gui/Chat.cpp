@@ -12,7 +12,7 @@ Chat::Chat(QWidget* parent)
 	connect(ui->backButtonChat, &QPushButton::clicked, this, &Chat::MoveBack);
 	connect(ui->ButtonChat, &QPushButton::clicked, this, &Chat::CreateListWidget);
 	connect(ui->Message_SendButton, &QPushButton::clicked, this, &Chat::on_Message_SendButton_clicked);
-	
+
 	ui->pushButton->setStyleSheet("QPushButton { "
 		"border-image: url(:/MainWindow/images/searchusers.png); "
 		"}");
@@ -33,30 +33,28 @@ Chat::Chat(QWidget* parent)
 		"QListWidget {"
 		"border: none;"
 		"border-radius: 5px;"
-		"background-color: rgba(14, 14, 14, 1);" 
+		"background-color: rgba(14, 14, 14, 1);"
 		"}"
 		"QListWidget::item {"
 		"padding: 5px;"
 		"}"
 		"QListWidget::item:hover {"
-		"background-color: #c0c0c0;" 
+		"background-color: #c0c0c0;"
 		"}"
 		"QPushButton {"
 		"border: 5px solid gray;"
 		"border-radius: 5px;"
-<<<<<<< HEAD
 		"padding: 10px;"
-		"background-color: gray;" // Цвет фона кнопки
-=======
+		"background-color: gray;"
+
 		"padding: 5px;"
-		"background-color: gray;" 
+		"background-color: gray;"
 		"}"
 		"QPushButton:hover {"
-		"background-color: #e0e0e0;" 
+		"background-color: #e0e0e0;"
 		"}"
 		"QPushButton:pressed {"
-		"background-color: #d0d0d0;" 
->>>>>>> a8cbf81b51c814c2c51036f10b9e146a3bdf10a2
+		"background-color: #d0d0d0;"
 		"}");
 
 	ui->Chats_SearchLineChat->setStyleSheet("background-color: rgba(147, 147, 147, 1);"
@@ -100,6 +98,24 @@ void Chat::addButtonsFromVector(const std::vector<std::string>& buttonNames)
 	{
 		QPushButton* button = new QPushButton(QString::fromStdString(name));
 		QListWidgetItem* item = new QListWidgetItem(ui->listWidget);
+
+		item->setSizeHint(QSize(300, 100));  
+
+		button->setStyleSheet("QPushButton {"
+			"    background-color: rgba(147, 147, 147, 1);"
+			"    color: white;"
+			"    border-radius: 4px;"
+			"    padding: 8px;"
+			"    font-size: 24px;"  // Установите желаемый размер текста
+			"}"
+			"QPushButton:hover {"
+			"   background-color: rgba(147, 147, 147, 1);"
+			"}");
+
+		QIcon icon(":/MainWindow/images/avatar.png");
+		button->setIcon(icon);
+		button->setIconSize(QSize(48, 48));
+
 		ui->listWidget->addItem(item);
 		ui->listWidget->setItemWidget(item, button);
 
@@ -143,6 +159,7 @@ void Chat::OpenChatWithUser(const std::string name)
 {
 	std::cout << "Open chat with user name: " << name << '\n';
 	ui->stackedWidget->setCurrentWidget(ui->message);
+	ui->user_name->setText(QString::fromStdString(name));
 	last_chat_name = name;
 }
 
@@ -154,11 +171,11 @@ void Chat::MoveBack()
 
 void Chat::SearchUsers(const QString& name)
 {
-	for (int i = 0; i < ui->listWidget->count(); ++i)
+	/*for (int i = 0; i < ui->listWidget->count(); ++i)
 	{
 		QListWidgetItem* item = ui->listWidget->item(i);
 
-		if (item) 
+		if (item)
 		{
 			if (name.isEmpty())
 			{
@@ -168,6 +185,28 @@ void Chat::SearchUsers(const QString& name)
 			{
 				bool containsText = item->text().contains(name, Qt::CaseInsensitive);
 				item->setHidden(!containsText);
+			}
+		}
+	}*/
+
+	for (int i = 0; i < ui->listWidget->count(); ++i)
+	{
+		QListWidgetItem* item = ui->listWidget->item(i);
+
+		if (item)
+		{
+			QWidget* widget = ui->listWidget->itemWidget(item);
+
+			if (widget && widget->inherits("QPushButton")) 
+			{
+				QPushButton* button = qobject_cast<QPushButton*>(widget);
+
+				if (button)
+				{
+					QString buttonText = button->text();
+					bool containsText = buttonText.contains(name, Qt::CaseInsensitive);
+					item->setHidden(!containsText);
+				}
 			}
 		}
 	}
