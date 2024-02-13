@@ -348,29 +348,29 @@ namespace TCPChat
 					unsigned long mode = 1;
 					if (ioctlsocket(client_socket, FIONBIO, &mode) != 0)
 					{
-						HN_ERROR("ProcessData(): ioctlsocket");
-						HN_ERROR("WSA Error: {0}", WSAGetLastError());
+						//HN_ERROR("ProcessData(): ioctlsocket");
+						//HN_ERROR("WSA Error: {0}", WSAGetLastError());
 					}
 
 					if (recv(client_socket, (char*)&recieved_buffer_size, sizeof(int), 0) <= 0)
 					{
-						HN_ERROR("ClientHandler(): recieved_buffer_size recv");
-						HN_ERROR("WSA Error: {0}", WSAGetLastError());
+						//HN_ERROR("ClientHandler(): recieved_buffer_size recv");
+						//HN_ERROR("WSA Error: {0}", WSAGetLastError());
 						continue;
 					}
 					mode = 0;
 					if (ioctlsocket(client_socket, FIONBIO, &mode) != 0)
 					{
-						HN_ERROR("ProcessData(): ioctlsocket");
-						HN_ERROR("WSA Error: {0}", WSAGetLastError());
+						//HN_ERROR("ProcessData(): ioctlsocket");
+						//HN_ERROR("WSA Error: {0}", WSAGetLastError());
 					}
 
 					recieved_buffer.resize(recieved_buffer_size);
 
 					if (recv(client_socket, recieved_buffer.data(), recieved_buffer_size, 0) <= 0)
 					{
-						HN_ERROR("ClientHandler(): recieved_buffer_size recv");
-						HN_ERROR("WSA Error: {0}", WSAGetLastError());
+						//HN_ERROR("ClientHandler(): recieved_buffer_size recv");
+						//HN_ERROR("WSA Error: {0}", WSAGetLastError());
 					}
 
 

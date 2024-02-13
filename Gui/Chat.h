@@ -1,9 +1,14 @@
 #pragma once
 
 #include <QWidget>
-#include <vector>
 #include <QPushButton>
 #include <QListWidgetItem>
+#include <QVBoxLayout>
+#include <QLabel>
+#include <QMessageBox>
+
+#include <vector>
+
 #include "ui_Chat.h"
 #include "client.h"
 
@@ -28,6 +33,7 @@ private slots:
 public:
 	void addButtonsFromVector(const std::vector<std::string>& buttonNames);
 	void OpenChatWithUser(const std::string name);
+	void addMessage(const QString& message, bool alignRight);
 	Chat(QWidget *parent = nullptr);
 	~Chat();
 };

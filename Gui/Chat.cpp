@@ -57,6 +57,11 @@ Chat::Chat(QWidget* parent)
 		"background-color: #d0d0d0;"
 		"}");
 
+	ui->message_list->setStyleSheet(
+		"QListWidget {"
+		"border: none;}"); 
+	ui->message_list->setResizeMode(QListView::Adjust);
+
 	ui->Chats_SearchLineChat->setStyleSheet("background-color: rgba(147, 147, 147, 1);"
 		"border-radius: 10px;"
 		"color: white;"
@@ -106,7 +111,7 @@ void Chat::addButtonsFromVector(const std::vector<std::string>& buttonNames)
 			"    color: white;"
 			"    border-radius: 4px;"
 			"    padding: 8px;"
-			"    font-size: 24px;"  // Установите желаемый размер текста
+			"    font-size: 24px;"  
 			"}"
 			"QPushButton:hover {"
 			"   background-color: rgba(147, 147, 147, 1);"
@@ -123,6 +128,12 @@ void Chat::addButtonsFromVector(const std::vector<std::string>& buttonNames)
 			OpenChatWithUser(name);
 			});
 	}
+}
+
+void Chat::addMessage(const QString& message, bool alignRight)
+{
+	QListWidgetItem* item = new QListWidgetItem(ui->message_list);
+
 }
 
 void Chat::CreateListWidget()
@@ -145,12 +156,28 @@ void Chat::CreateListWidget()
 void Chat::on_Message_SendButton_clicked()
 {
 	QString message = ui->Message_LineMessageEdit->text();
+	QListWidgetItem* message_item = new QListWidgetItem(message);
 
 	if (!message.isEmpty())
 	{
 		std::cout << "message: " << message.toStdString() << " from(login): " << client.GetMessageInfo().from << " to(name): " << last_chat_name << '\n';
 		client.SendMessageTest(message.toStdString(), client.GetMessageInfo().from, last_chat_name);
+
+		QVBoxLayout* message_layout = new QVBoxLayout();
+		QLabel* messageLabel = new QLabel(message);
+		message_layout->addWidget(messageLabel);
+
+		QListWidgetItem* item = new QListWidgetItem();
+		item->setSizeHint(QSize(100, 50));
+		ui->message_list->addItem(item);
+		ui->message_list->setItemWidget(item, new QWidget);
+		ui->message_list->itemWidget(item)->setLayout(message_layout);
 	}
+
+
+	
+
+	ui->message_list->addItem(message_item);
 
 	ui->Message_LineMessageEdit->clear();
 }
@@ -171,24 +198,6 @@ void Chat::MoveBack()
 
 void Chat::SearchUsers(const QString& name)
 {
-	/*for (int i = 0; i < ui->listWidget->count(); ++i)
-	{
-		QListWidgetItem* item = ui->listWidget->item(i);
-
-		if (item)
-		{
-			if (name.isEmpty())
-			{
-				item->setHidden(false);
-			}
-			else
-			{
-				bool containsText = item->text().contains(name, Qt::CaseInsensitive);
-				item->setHidden(!containsText);
-			}
-		}
-	}*/
-
 	for (int i = 0; i < ui->listWidget->count(); ++i)
 	{
 		QListWidgetItem* item = ui->listWidget->item(i);

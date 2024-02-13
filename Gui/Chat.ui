@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1291</width>
+    <width>1297</width>
     <height>821</height>
    </rect>
   </property>
@@ -399,6 +399,19 @@ background-color: transparent;</string>
       <string notr="true">background-color: rgba(0, 0, 0, 1);
 </string>
      </property>
+     <widget class="QListWidget" name="message_list">
+      <property name="enabled">
+       <bool>true</bool>
+      </property>
+      <property name="geometry">
+       <rect>
+        <x>5</x>
+        <y>1</y>
+        <width>801</width>
+        <height>631</height>
+       </rect>
+      </property>
+     </widget>
     </widget>
     <widget class="QWidget" name="widget_11" native="true">
      <property name="geometry">
