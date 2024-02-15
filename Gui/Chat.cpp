@@ -59,8 +59,17 @@ Chat::Chat(QWidget* parent)
 
 	ui->message_list->setStyleSheet(
 		"QListWidget {"
-		"border: none;}"); 
+		"border: none;"
+		"}"
+		"QListWidget::item {"
+		"background-color: rgba(14, 14, 14, 1);"
+		"padding: 5px;"
+		"}"
+	);
 	ui->message_list->setResizeMode(QListView::Adjust);
+	ui->message_list->setAutoScroll(false);
+	ui->message_list->setLayoutMode(QListView::SinglePass);
+	ui->message_list->setFlow(QListView::TopToBottom);
 
 	ui->Chats_SearchLineChat->setStyleSheet("background-color: rgba(147, 147, 147, 1);"
 		"border-radius: 10px;"
@@ -130,11 +139,6 @@ void Chat::addButtonsFromVector(const std::vector<std::string>& buttonNames)
 	}
 }
 
-void Chat::addMessage(const QString& message, bool alignRight)
-{
-	QListWidgetItem* item = new QListWidgetItem(ui->message_list);
-
-}
 
 void Chat::CreateListWidget()
 {
@@ -153,31 +157,66 @@ void Chat::CreateListWidget()
 	std::cout << "Created list widget\n";
 }
 
+void Chat::addMessage(const QString& message, bool alignRight)
+{
+	QLabel* messageLabel = new QLabel(message);
+	messageLabel->setWordWrap(true); // Включаем перенос слов, если текст слишком длинный
+
+	// Устанавливаем фон элемента
+	QListWidgetItem* item = new QListWidgetItem(ui->message_list);
+	item->setBackground(QBrush(Qt::yellow));
+
+	// Устанавливаем выравнивание текста в зависимости от параметра alignRight
+	if (alignRight)
+		item->setTextAlignment(Qt::AlignRight);
+	else
+		item->setTextAlignment(Qt::AlignLeft);
+
+	// Устанавливаем виджет текста как виджет элемента списка
+	ui->message_list->setItemWidget(item, messageLabel);
+
+	// Устанавливаем размер элемента на основе размера текста
+	QSize size = messageLabel->sizeHint();
+	item->setSizeHint(size);
+}
+
 void Chat::on_Message_SendButton_clicked()
 {
 	QString message = ui->Message_LineMessageEdit->text();
-	QListWidgetItem* message_item = new QListWidgetItem(message);
+	//QListWidgetItem* message_item = new QListWidgetItem(message);
 
 	if (!message.isEmpty())
 	{
 		std::cout << "message: " << message.toStdString() << " from(login): " << client.GetMessageInfo().from << " to(name): " << last_chat_name << '\n';
 		client.SendMessageTest(message.toStdString(), client.GetMessageInfo().from, last_chat_name);
 
-		QVBoxLayout* message_layout = new QVBoxLayout();
-		QLabel* messageLabel = new QLabel(message);
-		message_layout->addWidget(messageLabel);
+		//QVBoxLayout* message_layout = new QVBoxLayout();
+		//QLabel* messageLabel = new QLabel(message);
+		//message_layout->addWidget(messageLabel);
 
-		QListWidgetItem* item = new QListWidgetItem();
-		item->setSizeHint(QSize(100, 50));
-		ui->message_list->addItem(item);
-		ui->message_list->setItemWidget(item, new QWidget);
-		ui->message_list->itemWidget(item)->setLayout(message_layout);
+		//QListWidgetItem* item = new QListWidgetItem();
+		//item->setSizeHint(QSize(200, 100));
+		//ui->message_list->addItem(item);
+		//ui->message_list->setItemWidget(item, new QWidget);
+		//ui->message_list->itemWidget(item)->setLayout(message_layout);
+
+		/*QListWidgetItem* newItem = new QListWidgetItem(message);
+
+		newItem->setTextAlignment(Qt::AlignRight);
+		newItem->setSizeHint(QSize(125, 75));
+		newItem->setBackground(QBrush(Qt::yellow));
+		
+
+		ui->message_list->insertItem(0, newItem);*/
+
+		addMessage(message, true);
+		ui->message_list->scrollToBottom();
 	}
 
 
 	
 
-	ui->message_list->addItem(message_item);
+	//ui->message_list->addItem(message_item);
 
 	ui->Message_LineMessageEdit->clear();
 }
@@ -223,5 +262,22 @@ void Chat::SearchUsers(const QString& name)
 
 Chat::~Chat()
 {
+	for (int i = 0; i < ui->listWidget->count(); ++i)
+	{
+		QListWidgetItem* item = ui->listWidget->item(i);
+
+		if (item)
+		{
+			QWidget* widget = ui->listWidget->itemWidget(item);
+
+			if (widget)
+			{
+				delete widget;
+			}
+
+			delete item;
+		}
+	}
+
 	delete ui;
 }
