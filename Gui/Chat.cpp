@@ -6,6 +6,8 @@ Chat::Chat(QWidget* parent)
 	ui = new Ui::ChatClass;
 	ui->setupUi(this);
 
+
+
 	connect(ui->pushButton, &QPushButton::clicked, this, &Chat::CreateListWidget);
 	connect(ui->Users_SearchLineUsers, &QLineEdit::textChanged, this, &Chat::SearchUsers);
 	connect(ui->backButton, &QPushButton::clicked, this, &Chat::MoveBack);
@@ -60,9 +62,10 @@ Chat::Chat(QWidget* parent)
 	ui->message_list->setStyleSheet(
 		"QListWidget {"
 		"border: none;"
+		"colort: white;"
 		"}"
 		"QListWidget::item {"
-		"background-color: rgba(14, 14, 14, 1);"
+		"background-color: rgba(28, 28, 28, 1);"
 		"padding: 5px;"
 		"}"
 	);
@@ -113,14 +116,14 @@ void Chat::addButtonsFromVector(const std::vector<std::string>& buttonNames)
 		QPushButton* button = new QPushButton(QString::fromStdString(name));
 		QListWidgetItem* item = new QListWidgetItem(ui->listWidget);
 
-		item->setSizeHint(QSize(300, 100));  
+		item->setSizeHint(QSize(300, 100));
 
 		button->setStyleSheet("QPushButton {"
 			"    background-color: rgba(147, 147, 147, 1);"
 			"    color: white;"
-			"    border-radius: 4px;"
+			"    border-radius: 12px;"
 			"    padding: 8px;"
-			"    font-size: 24px;"  
+			"    font-size: 24px;"
 			"}"
 			"QPushButton:hover {"
 			"   background-color: rgba(147, 147, 147, 1);"
@@ -157,66 +160,24 @@ void Chat::CreateListWidget()
 	std::cout << "Created list widget\n";
 }
 
-void Chat::addMessage(const QString& message, bool alignRight)
-{
-	QLabel* messageLabel = new QLabel(message);
-	messageLabel->setWordWrap(true); // Включаем перенос слов, если текст слишком длинный
-
-	// Устанавливаем фон элемента
-	QListWidgetItem* item = new QListWidgetItem(ui->message_list);
-	item->setBackground(QBrush(Qt::yellow));
-
-	// Устанавливаем выравнивание текста в зависимости от параметра alignRight
-	if (alignRight)
-		item->setTextAlignment(Qt::AlignRight);
-	else
-		item->setTextAlignment(Qt::AlignLeft);
-
-	// Устанавливаем виджет текста как виджет элемента списка
-	ui->message_list->setItemWidget(item, messageLabel);
-
-	// Устанавливаем размер элемента на основе размера текста
-	QSize size = messageLabel->sizeHint();
-	item->setSizeHint(size);
-}
 
 void Chat::on_Message_SendButton_clicked()
 {
 	QString message = ui->Message_LineMessageEdit->text();
-	//QListWidgetItem* message_item = new QListWidgetItem(message);
 
 	if (!message.isEmpty())
 	{
 		std::cout << "message: " << message.toStdString() << " from(login): " << client.GetMessageInfo().from << " to(name): " << last_chat_name << '\n';
-		client.SendMessageTest(message.toStdString(), client.GetMessageInfo().from, last_chat_name);
+		client.SendMessageText(message.toStdString(), client.GetMessageInfo().from, last_chat_name);
 
-		//QVBoxLayout* message_layout = new QVBoxLayout();
-		//QLabel* messageLabel = new QLabel(message);
-		//message_layout->addWidget(messageLabel);
 
-		//QListWidgetItem* item = new QListWidgetItem();
-		//item->setSizeHint(QSize(200, 100));
-		//ui->message_list->addItem(item);
-		//ui->message_list->setItemWidget(item, new QWidget);
-		//ui->message_list->itemWidget(item)->setLayout(message_layout);
-
-		/*QListWidgetItem* newItem = new QListWidgetItem(message);
-
-		newItem->setTextAlignment(Qt::AlignRight);
-		newItem->setSizeHint(QSize(125, 75));
-		newItem->setBackground(QBrush(Qt::yellow));
-		
-
-		ui->message_list->insertItem(0, newItem);*/
-
-		addMessage(message, true);
+		QListWidgetItem* item = new QListWidgetItem(message);
+		item->setTextAlignment(Qt::AlignRight);
+		//item->setTextColor(Qt::white);
+		item->setForeground(Qt::white);
+		ui->message_list->insertItem(-1, item);
 		ui->message_list->scrollToBottom();
 	}
-
-
-	
-
-	//ui->message_list->addItem(message_item);
 
 	ui->Message_LineMessageEdit->clear();
 }
@@ -227,6 +188,13 @@ void Chat::OpenChatWithUser(const std::string name)
 	ui->stackedWidget->setCurrentWidget(ui->message);
 	ui->user_name->setText(QString::fromStdString(name));
 	last_chat_name = name;
+	//TODO: Load all messages from db
+	reciever_thread = std::thread(&addMessage);
+}
+
+void Chat::addMessage()
+{
+	
 }
 
 void Chat::MoveBack()
@@ -245,7 +213,7 @@ void Chat::SearchUsers(const QString& name)
 		{
 			QWidget* widget = ui->listWidget->itemWidget(item);
 
-			if (widget && widget->inherits("QPushButton")) 
+			if (widget && widget->inherits("QPushButton"))
 			{
 				QPushButton* button = qobject_cast<QPushButton*>(widget);
 
@@ -278,6 +246,8 @@ Chat::~Chat()
 			delete item;
 		}
 	}
+
+	reciever_thread.join();
 
 	delete ui;
 }
