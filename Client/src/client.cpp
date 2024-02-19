@@ -188,7 +188,7 @@ namespace TCPChat
 		std::cout << "Client count: " << uinfo_dto.client_count << '\n';
 	}
 
-	void Client::SendMessageTest(const std::string message, const std::string from, const std::string to)
+	void Client::SendMessageText(const std::string message, const std::string from, const std::string to)
 	{
 		json json_data;
 		json_data["message"] = message;
@@ -211,6 +211,27 @@ namespace TCPChat
 
 
 		std::cout << "Message Send: " << message << "\n\n";
+	}
+
+	void Client::RecieveMessageText()
+	{
+		std::string recieved_message;
+		int recieved_message_size = 0;
+
+
+		if (recv(client_socket, (char*)&recieved_message_size, sizeof(int), 0) <= 0)
+		{
+			std::cout << WSAGetLastError() << '\n';
+			perror("RecieveUsersInfo(): recieved_buffer_size recv");
+		}
+
+		recieved_message.resize(recieved_message_size);
+
+		if (recv(client_socket, recieved_message.data(), recieved_message_size, 0) <= 0)
+		{
+			std::cout << WSAGetLastError() << '\n';
+			perror("RecieveUsersInfo(): recieved_buffer_size recv");
+		}
 	}
 
 	void Client::Disconnect()

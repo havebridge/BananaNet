@@ -93,7 +93,8 @@ namespace TCPChat
 		bool SendUserInfoSignUp(std::string username, std::string login, std::string password);
 		bool SendUserInfoSignIn(std::string login, std::string password);
 		void RecieveUsersInfo();
-		void SendMessageTest(const std::string message, const std::string from, const std::string to);
+		void SendMessageText(const std::string message, const std::string from, const std::string to);
+		void RecieveMessageText();
 		void Disconnect();
 		void Run();
 
