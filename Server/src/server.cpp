@@ -266,69 +266,45 @@ namespace TCPChat
 		return true;
 	}
 
+	bool Server::SendMessageToClient(json json_data)
+	{
+		std::string username = json_data["to"];
+		std::string message = json_data["message"];
+		int message_size = message.size();
+
+
+		auto client = std::find_if(clients.cbegin(), clients.cend(), [&](const std::unique_ptr<Client>& client) {
+			return client->uinfo.username == username;
+			});
+
+		if (client != clients.cend())
+		{
+			if (send(client->get()->client_socket, (char*)static_cast<int>(message.size()), sizeof(int), 0) <= 0)
+			{
+				HN_ERROR("SendMessageToClient(): send message_size");
+				HN_ERROR("WSA Error: {0}", WSAGetLastError());
+				return false;
+			}
+
+			if (send(client->get()->client_socket, message.c_str(), static_cast<int>(message.size()), 0) <= 0)
+			{
+				HN_ERROR("SendMessageToClient(): send message");
+				HN_ERROR("WSA Error: {0}", WSAGetLastError());
+				return false;
+			}
+
+			return true;
+		}
+		else
+		{
+			HN_ERROR("SendMessageToClient(): find_if");
+			return false;
+		}
+	}
+
 	void Server::ProcessData()
 	{
 		std::cout << "PROCESS DATA FUNC\n";
-
-		//TODO: while loop online status check
-		//std::unique_lock<std::mutex> client_lock(client_mutex);
-		//client_lock.lock();
-		//if (!clients.empty())
-		//{
-		//	for (const auto& client : clients)
-		//	{
-		//		if (client)
-		//		{
-		//			std::cout << "CONST AUTO& CLIENT : CLIENTS\n";
-		//			Client::message_info message = {};
-		//			SOCKET client_socket = client->client_socket;
-
-		//			std::string recieved_buffer;
-		//			int recieved_buffer_size = 0;
-		//			unsigned long mode = 1;
-		//			if (ioctlsocket(client_socket, FIONBIO, &mode) != 0)
-		//			{
-		//				HN_ERROR("ProcessData(): ioctlsocket");
-		//				HN_ERROR("WSA Error: {0}", WSAGetLastError());
-		//			}
-
-		//			if (recv(client_socket, (char*)&recieved_buffer_size, sizeof(int), 0) <= 0)
-		//			{
-		//				HN_ERROR("ClientHandler(): recieved_buffer_size recv");
-		//				HN_ERROR("WSA Error: {0}", WSAGetLastError());
-		//			}
-
-		//			recieved_buffer.resize(recieved_buffer_size);
-
-		//			if (recv(client_socket, recieved_buffer.data(), recieved_buffer_size, 0) <= 0)
-		//			{
-		//				HN_ERROR("ClientHandler(): recieved_buffer_size recv");
-		//				HN_ERROR("WSA Error: {0}", WSAGetLastError());
-		//			}
-
-
-		//			mode = 0;
-		//			if (ioctlsocket(client_socket, FIONBIO, &mode) != 0)
-		//			{
-		//				HN_ERROR("ProcessData(): ioctlsocket");
-		//				HN_ERROR("WSA Error: {0}", WSAGetLastError());
-		//			}
-		//			json json_data = json::parse(recieved_buffer);
-
-		//			message.message = json_data["message"];
-		//			message.from = json_data["from"];
-		//			message.to = json_data["to"];
-
-
-		//			HN_INFO("message: {0} from: {1} to: {2}", message.message, message.from, message.to);
-
-		//			db.AddMessage(message.message, message.from, message.to);
-		//			//std::cout << "Message Send: " << message << "\n\n";
-		//		}
-		//	}
-		//}
-
-		//client_lock.unlock();
 
 		{
 			std::lock_guard lock(client_mutex);
@@ -384,6 +360,8 @@ namespace TCPChat
 					HN_INFO("message: {0} from: {1} to: {2}", message.message, message.from, message.to);
 
 					db.AddMessage(message.message, message.from, message.to);
+
+					SendMessageToClient(json_data);
 				}
 
 			}
