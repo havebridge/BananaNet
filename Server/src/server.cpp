@@ -273,20 +273,22 @@ namespace TCPChat
 		int message_size = message.size();
 
 
-		auto client = std::find_if(clients.cbegin(), clients.cend(), [&](const std::unique_ptr<Client>& client) {
+		auto client = std::find_if(clients.begin(), clients.end(), [&](const std::unique_ptr<Client>& client) {
 			return client->uinfo.username == username;
 			});
 
-		if (client != clients.cend())
+		if (client != clients.end())
 		{
-			if (send(client->get()->client_socket, (char*)static_cast<int>(message.size()), sizeof(int), 0) <= 0)
+			int message_size_net_order = htonl(message_size);
+
+			if (send(client->get()->client_socket, reinterpret_cast<char*>(&message_size_net_order), sizeof(int), 0) == -1)
 			{
 				HN_ERROR("SendMessageToClient(): send message_size");
 				HN_ERROR("WSA Error: {0}", WSAGetLastError());
 				return false;
 			}
 
-			if (send(client->get()->client_socket, message.c_str(), static_cast<int>(message.size()), 0) <= 0)
+			if (send(client->get()->client_socket, message.c_str(), static_cast<int>(message.size()), 0) == -1)
 			{
 				HN_ERROR("SendMessageToClient(): send message");
 				HN_ERROR("WSA Error: {0}", WSAGetLastError());
@@ -304,7 +306,7 @@ namespace TCPChat
 
 	void Server::ProcessData()
 	{
-		std::cout << "PROCESS DATA FUNC\n";
+		//std::cout << "PROCESS DATA FUNC\n";
 
 		{
 			std::lock_guard lock(client_mutex);
@@ -314,7 +316,7 @@ namespace TCPChat
 				if (client)
 				{
 					std::this_thread::sleep_for(std::chrono::microseconds(500));
-					std::cout << "CONST AUTO& CLIENT : CLIENTS\n";
+					//std::cout << "CONST AUTO& CLIENT : CLIENTS\n";
 					Client::message_info message = {};
 					SOCKET client_socket = client->client_socket;
 

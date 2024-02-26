@@ -22,7 +22,7 @@ namespace Core
 
 	void ChatDB::DeleteUsersInfo()
 	{
-		std::string query_string = "DELETE from chat_use;";
+		std::string query_string = "DELETE from chat_user;";
 
 		qstate = mysql_query(&mysql, query_string.c_str());
 
@@ -33,46 +33,108 @@ namespace Core
 			mysql_close(connection);
 		}
 
-		mysql_store_result(&mysql);
+		//mysql_store_result(&mysql);
 	}
 
 	bool ChatDB::InsertUser(TCPChat::Client::user_info* uinfo, struct sockaddr_in client_info)
 	{
-		std::string query_string = "INSERT INTO chat_user (username, login, password, ip, last_visited_at) VALUE ('";
-		query_string += uinfo->username + "','";
-		query_string += uinfo->login + "','";
-		query_string += uinfo->password + "', INET_ATON('";
-		query_string += std::string(inet_ntoa(client_info.sin_addr)) + "'), NOW())";
+		std::string query_string = "INSERT INTO chat_user (username, login, password, ip, last_visited_at) VALUES (?, ?, ?, ?, NOW())";
 
-		qstate = mysql_query(&mysql, query_string.c_str());
+		MYSQL_STMT* stmt = mysql_stmt_init(&mysql);
 
-		if (qstate != 0)
+		if (!stmt) 
 		{
-			std::cout << mysql_error(&mysql) << std::endl;
-			mysql_close(connection);
+			std::cout << "mysql_stmt_init(), out of memory\n";
 			return false;
 		}
 
-		mysql_store_result(&mysql);
+		if (mysql_stmt_prepare(stmt, query_string.c_str(), query_string.length()) != 0)
+		{
+			std::cout << "mysql_stmt_prepare(), INSERT failed\n";
+			return false;
+		}
+
+		MYSQL_BIND bind[5];
+		memset(bind, 0, sizeof(bind));
+
+		bind[0].buffer_type = MYSQL_TYPE_STRING;
+		bind[0].buffer = const_cast<char*>(uinfo->username.c_str());
+		bind[0].buffer_length = uinfo->username.length();
+		bind[0].is_null = 0;
+
+		bind[1].buffer_type = MYSQL_TYPE_STRING;
+		bind[1].buffer = const_cast<char*>(uinfo->login.c_str());
+		bind[1].buffer_length = uinfo->login.length();
+		bind[1].is_null = 0;
+
+		bind[2].buffer_type = MYSQL_TYPE_STRING;
+		bind[2].buffer = const_cast<char*>(uinfo->password.c_str());
+		bind[2].buffer_length = uinfo->password.length();
+		bind[2].is_null = 0;
+
+		std::string ip = std::string(inet_ntoa(client_info.sin_addr));
+		bind[3].buffer_type = MYSQL_TYPE_STRING;
+		bind[3].buffer = const_cast<char*>(ip.c_str());
+		bind[3].buffer_length = ip.length();
+		bind[3].is_null = 0;
+
+		bind[4].buffer_type = MYSQL_TYPE_DATETIME;
+		bind[4].is_null = 0;
+
+		if (mysql_stmt_bind_param(stmt, bind) != 0) {
+			std::cout << "mysql_stmt_bind_param() failed\n";
+			return false;
+		}
+
+		if (mysql_stmt_execute(stmt) != 0) {
+			std::cout << "mysql_stmt_execute(), INSERT failed\n";
+			return false;
+		}
+
+		mysql_stmt_close(stmt);
 
 		return true;
 	}
 
 	bool ChatDB::UpdateUserInfo(std::string login)
 	{
-		std::string query_string = "UPDATE chat_user SET last_visited_at = NOW() WHERE login = '";
-		query_string += login + "';";
+		std::string query_string = "UPDATE chat_user SET last_visited_at = NOW() WHERE login = ?";
 
-		qstate = mysql_query(&mysql, query_string.c_str());
+		MYSQL_STMT* stmt = mysql_stmt_init(&mysql);
 
-		if (qstate != 0)
+		if (!stmt)
 		{
-			std::cout << mysql_error(&mysql) << std::endl;
-			mysql_close(connection);
+			std::cout << "mysql_stmt_init(), out of memory\n";
 			return false;
 		}
 
-		mysql_store_result(&mysql);
+		if (mysql_stmt_prepare(stmt, query_string.c_str(), query_string.length()) != 0) 
+		{
+			std::cout << "mysql_stmt_prepare(), UPDATE failed\n";
+			return false;
+		}
+
+		MYSQL_BIND bind[1];
+		memset(bind, 0, sizeof(bind));
+
+		bind[0].buffer_type = MYSQL_TYPE_STRING;
+		bind[0].buffer = const_cast<char*>(login.c_str());
+		bind[0].buffer_length = login.length();
+		bind[0].is_null = 0;
+
+		if (mysql_stmt_bind_param(stmt, bind) != 0)
+		{
+			std::cout << "mysql_stmt_bind_param() failed\n";
+			return false;
+		}
+
+		if (mysql_stmt_execute(stmt) != 0) 
+		{
+			std::cout << "mysql_stmt_execute(), UPDATE failed\n";
+			return false;
+		}
+
+		mysql_stmt_close(stmt);
 
 		return true;
 	}
