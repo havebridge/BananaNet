@@ -26,7 +26,7 @@ namespace TCPChat
 			return false;
 		}
 
-		if ((client_socket = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP)) == INVALID_SOCKET)
+		if ((client_socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)) == INVALID_SOCKET)
 		{
 			std::cout << WSAGetLastError() << '\n';
 			perror("socket");
@@ -35,7 +35,7 @@ namespace TCPChat
 
 		char mode = '1';
 
-		if ((setsockopt(client_socket, SOL_SOCKET, SO_REUSEADDR, &mode, sizeof(int)) == SOCKET_ERROR))
+		if ((setsockopt(client_socket, SOL_SOCKET, SO_REUSEADDR, &mode, sizeof(char)) == SOCKET_ERROR))
 		{
 			std::cout << WSAGetLastError() << '\n';
 			perror("setsockport");
@@ -48,7 +48,7 @@ namespace TCPChat
 
 		ZeroMemory(server_info.sin_zero, 8);
 
-		if (connect(client_socket, (const sockaddr*)&server_info, server_info_lenght) == INVALID_SOCKET)
+		if (connect(client_socket, (const sockaddr*)&server_info, server_info_lenght) == SOCKET_ERROR)
 		{
 			std::cout << WSAGetLastError() << '\n';
 			perror("client connect");
@@ -97,14 +97,14 @@ namespace TCPChat
 		std::string serialized_data = jsonData.dump();
 		int serialized_data_size = serialized_data.size();
 
-		if (send(client_socket, (const char*)&serialized_data_size, sizeof(int), 0) <= 0)
+		if (send(client_socket, reinterpret_cast<const char*>(&serialized_data_size), sizeof(int), 0) == -1)
 		{
 			std::cout << WSAGetLastError() << '\n';
 			perror("SendUserInfoSignUp: serialized_data_size send");
 			return false;
 		}
 
-		if (send(client_socket, serialized_data.c_str(), serialized_data_size, 0) <= 0)
+		if (send(client_socket, serialized_data.c_str(), serialized_data_size, 0) == -1)
 		{
 			std::cout << WSAGetLastError() << '\n';
 			perror("SendUserInfoSignUp: serialized_data send");
@@ -126,14 +126,14 @@ namespace TCPChat
 		std::string serialized_data = json_data.dump();
 		int serialized_data_size = serialized_data.size();
 
-		if (send(client_socket, (const char*)&serialized_data_size, sizeof(int), 0) <= 0)
+		if (send(client_socket, reinterpret_cast<const char*>(&serialized_data_size), sizeof(int), 0) == -1)
 		{
 			std::cout << WSAGetLastError() << '\n';
 			perror("SendUserInfoSignUp: serialized_data_size send");
 			return false;
 		}
 
-		if (send(client_socket, serialized_data.c_str(), serialized_data_size, 0) <= 0)
+		if (send(client_socket, serialized_data.c_str(), serialized_data_size, 0) == -1)
 		{
 			std::cout << WSAGetLastError() << '\n';
 			perror("SendUserInfoSignUp: serialized_data send");
@@ -150,7 +150,7 @@ namespace TCPChat
 		int recieved_buffer_size = 0;
 		bool is_any_client_connected = false;
 
-		if (recv(client_socket, (char*)&is_any_client_connected, sizeof(bool), 0) <= 0)
+		if (recv(client_socket, (char*)&is_any_client_connected, sizeof(bool), 0) == -1)
 		{
 			std::cout << WSAGetLastError() << '\n';
 			perror("RecieveUsersInfo(): is_any_client_connected recv");
@@ -160,7 +160,7 @@ namespace TCPChat
 
 		if (is_any_client_connected == true)
 		{
-			if (recv(client_socket, (char*)&recieved_buffer_size, sizeof(int), 0) <= 0)
+			if (recv(client_socket, (char*)&recieved_buffer_size, sizeof(int), 0) == -1)
 			{
 				std::cout << WSAGetLastError() << '\n';
 				perror("RecieveUsersInfo(): recieved_buffer_size recv");
@@ -168,7 +168,7 @@ namespace TCPChat
 
 			recieved_buffer.resize(recieved_buffer_size);
 
-			if (recv(client_socket, recieved_buffer.data(), recieved_buffer_size, 0) <= 0)
+			if (recv(client_socket, recieved_buffer.data(), recieved_buffer_size, 0) == -1)
 			{
 				std::cout << WSAGetLastError() << '\n';
 				perror("RecieveUsersInfo(): recieved_buffer_size recv");
@@ -197,13 +197,13 @@ namespace TCPChat
 		std::string serialized_data = json_data.dump();
 		int serialized_data_size = serialized_data.size();
 
-		if (send(client_socket, (const char*)&serialized_data_size, sizeof(int), 0) <= 0)
+		if (send(client_socket, reinterpret_cast<const char*>(&serialized_data_size), sizeof(int), 0) == -1)
 		{
 			std::cout << WSAGetLastError() << '\n';
 			perror("SendMessageTest(): recieved_buffer_size send");
 		}
 
-		if (send(client_socket, serialized_data.c_str(), serialized_data_size, 0) <= 0)
+		if (send(client_socket, serialized_data.c_str(), serialized_data_size, 0) == -1)
 		{
 			std::cout << WSAGetLastError() << '\n';
 			perror("SendMessageTest(): recieved_buffer send");
