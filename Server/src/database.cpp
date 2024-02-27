@@ -9,7 +9,7 @@ namespace Core
 
 		if (connection == NULL)
 		{
-			std::cout << mysql_error(&mysql) << std::endl;
+			std::cerr << mysql_error(&mysql) << std::endl;
 			mysql_close(&mysql);
 		}
 	}
@@ -28,12 +28,10 @@ namespace Core
 
 		if (qstate != 0)
 		{
-			std::cout << mysql_error(&mysql) << std::endl;
+			std::cerr << mysql_error(&mysql) << std::endl;
 			mysql_free_result(res);
 			mysql_close(connection);
 		}
-
-		//mysql_store_result(&mysql);
 	}
 
 	bool ChatDB::InsertUser(TCPChat::Client::user_info* uinfo, struct sockaddr_in client_info)
@@ -42,15 +40,16 @@ namespace Core
 
 		MYSQL_STMT* stmt = mysql_stmt_init(&mysql);
 
-		if (!stmt) 
+		if (!stmt)
 		{
-			std::cout << "mysql_stmt_init(), out of memory\n";
+			std::cerr << "mysql_stmt_init(), out of memory\n";
 			return false;
 		}
 
 		if (mysql_stmt_prepare(stmt, query_string.c_str(), query_string.length()) != 0)
 		{
-			std::cout << "mysql_stmt_prepare(), INSERT failed\n";
+			std::cerr << "mysql_stmt_prepare(), INSERT failed for query: " << query_string << '\n';
+			mysql_stmt_close(stmt);
 			return false;
 		}
 
@@ -81,13 +80,17 @@ namespace Core
 		bind[4].buffer_type = MYSQL_TYPE_DATETIME;
 		bind[4].is_null = 0;
 
-		if (mysql_stmt_bind_param(stmt, bind) != 0) {
-			std::cout << "mysql_stmt_bind_param() failed\n";
+		if (mysql_stmt_bind_param(stmt, bind) != 0)
+		{
+			std::cerr << "mysql_stmt_bind_param() failed\n";
+			mysql_stmt_close(stmt);
 			return false;
 		}
 
-		if (mysql_stmt_execute(stmt) != 0) {
-			std::cout << "mysql_stmt_execute(), INSERT failed\n";
+		if (mysql_stmt_execute(stmt) != 0)
+		{
+			std::cerr << "mysql_stmt_execute(), INSERT failed\n";
+			mysql_stmt_close(stmt);
 			return false;
 		}
 
@@ -96,22 +99,177 @@ namespace Core
 		return true;
 	}
 
-	bool ChatDB::UpdateUserInfo(std::string login)
+	bool ChatDB::UpdateUserInfo(const std::string& login)
 	{
-		std::string query_string = "UPDATE chat_user SET last_visited_at = NOW() WHERE login = ?";
+		std::string query_string = "UPDATE chat_user SET last_visited_at = NOW() WHERE login = '" + login + "'";
 
-		MYSQL_STMT* stmt = mysql_stmt_init(&mysql);
-
-		if (!stmt)
+		if (mysql_query(&mysql, query_string.c_str()) != 0)
 		{
-			std::cout << "mysql_stmt_init(), out of memory\n";
+			std::cerr << "mysql_query(), UPDATE failed for query: " << query_string << '\n';
 			return false;
 		}
 
-		if (mysql_stmt_prepare(stmt, query_string.c_str(), query_string.length()) != 0) 
+		return true;
+	}
+
+	bool ChatDB::GetUsers(const std::string& username, TCPChat::Client::user_info_dto& data)
+	{
+		std::string query_string = "SELECT username FROM chat_user WHERE NOT username = ?";
+
+		MYSQL_STMT* stmt = mysql_stmt_init(&mysql);
+		if (!stmt)
 		{
-			std::cout << "mysql_stmt_prepare(), UPDATE failed\n";
+			std::cerr << "mysql_stmt_init(), out of memory\n";
 			return false;
+		}
+
+		if (mysql_stmt_prepare(stmt, query_string.c_str(), query_string.length()) != 0)
+		{
+			std::cerr << "mysql_stmt_prepare(), GET failed for query: " << query_string << '\n';
+			mysql_stmt_close(stmt);
+			return false;
+		}
+
+		MYSQL_BIND bind[1];
+		memset(bind, 0, sizeof(bind));
+
+		bind[0].buffer_type = MYSQL_TYPE_STRING;
+		bind[0].buffer = const_cast<char*>(username.c_str());
+		bind[0].buffer_length = username.length();
+		bind[0].is_null = 0;
+
+		if (mysql_stmt_bind_param(stmt, bind) != 0)
+		{
+			std::cerr << "mysql_stmt_bind_param() failed\n";
+			mysql_stmt_close(stmt);
+			return false;
+		}
+
+		if (mysql_stmt_execute(stmt) != 0)
+		{
+			std::cerr << "mysql_stmt_exectute(), GET failed for query: " << query_string << '\n';
+			mysql_stmt_close(stmt);
+			return false;
+		}
+
+		std::vector<std::string> usernames;
+		std::vector<char> result_data(256);
+		unsigned long length;
+
+		MYSQL_BIND result_bind;
+		memset(&result_bind, 0, sizeof(result_bind));
+
+		result_bind.buffer_type = MYSQL_TYPE_STRING;
+		result_bind.buffer = result_data.data();
+		result_bind.buffer_length = result_data.size();
+		result_bind.length = &length;
+		result_bind.is_null = 0;
+
+		if (mysql_stmt_bind_result(stmt, &result_bind) != 0)
+		{
+			std::cerr << "mysql_stmt_bind_result() failed\n";
+			mysql_stmt_close(stmt);
+			return false;
+		}
+
+		while (mysql_stmt_fetch(stmt) == 0)
+		{
+			usernames.push_back(std::string(result_data.data(), length));
+		}
+
+		data.usernames = usernames;
+
+		mysql_stmt_close(stmt);
+
+		return true;
+	}
+
+	int ChatDB::GetIDByUsername(const std::string& username)
+	{
+		int user_id = 0;
+
+		std::string query_string = "SELECT id FROM chat_user WHERE username = ?";
+
+		MYSQL_STMT* stmt = mysql_stmt_init(&mysql);
+		if (!stmt)
+		{
+			std::cerr << "mysql_stmt_init(), out of memory\n";
+			return 0;
+		}
+
+		if (mysql_stmt_prepare(stmt, query_string.c_str(), query_string.length()) != 0)
+		{
+			std::cerr << "mysql_stmt_prepare(), GET failed for query: " << query_string << '\n';
+			mysql_stmt_close(stmt);
+			return 0;
+		}
+
+		MYSQL_BIND bind[1];
+		memset(bind, 0, sizeof(bind));
+
+		bind[0].buffer_type = MYSQL_TYPE_STRING;
+		bind[0].buffer = const_cast<char*>(username.c_str());
+		bind[0].buffer_length = username.length();
+		bind[0].is_null = 0;
+
+		if (mysql_stmt_bind_param(stmt, bind) != 0)
+		{
+			std::cerr << "mysql_stmt_bind_param() failed\n";
+			mysql_stmt_close(stmt);
+			return 0;
+		}
+
+		MYSQL_BIND result_bind;
+		memset(&result_bind, 0, sizeof(result_bind));
+
+		result_bind.buffer_type = MYSQL_TYPE_LONG;
+		result_bind.buffer = &user_id;
+		result_bind.is_null = 0;
+
+		if (mysql_stmt_bind_result(stmt, &result_bind) != 0)
+		{
+			std::cerr << "mysql_stmt_bind_result() failed\n";
+			mysql_stmt_close(stmt);
+			return 0;
+		}
+
+		if (mysql_stmt_execute(stmt) != 0)
+		{
+			std::cerr << "mysql_stmt_exectute(), GET failed for query: " << query_string << '\n';
+			mysql_stmt_close(stmt);
+			return 0;
+		}
+
+		if (mysql_stmt_fetch(stmt) != 0)
+		{
+			std::cerr << "mysql_stmt_fetch(), GET failed for query: " << query_string << '\n';
+			mysql_stmt_close(stmt);
+			return 0;
+		}
+
+		mysql_stmt_close(stmt);
+
+		return user_id;
+	}
+
+	int ChatDB::GetIDByLogin(const std::string& login)
+	{
+		int user_id = 0;
+
+		std::string query_string = "SELECT id FROM chat_user WHERE login = ?";
+
+		MYSQL_STMT* stmt = mysql_stmt_init(&mysql);
+		if (!stmt)
+		{
+			std::cerr << "mysql_stmt_init(), out of memory\n";
+			return 0;
+		}
+
+		if (mysql_stmt_prepare(stmt, query_string.c_str(), query_string.length()) != 0)
+		{
+			std::cerr << "mysql_stmt_prepare(), GET failed for query: " << query_string << '\n';
+			mysql_stmt_close(stmt);
+			return 0;
 		}
 
 		MYSQL_BIND bind[1];
@@ -124,125 +282,96 @@ namespace Core
 
 		if (mysql_stmt_bind_param(stmt, bind) != 0)
 		{
-			std::cout << "mysql_stmt_bind_param() failed\n";
-			return false;
+			std::cerr << "mysql_stmt_bind_param() failed\n";
+			mysql_stmt_close(stmt);
+			return 0;
 		}
 
-		if (mysql_stmt_execute(stmt) != 0) 
+		MYSQL_BIND result_bind;
+		memset(&result_bind, 0, sizeof(result_bind));
+
+		result_bind.buffer_type = MYSQL_TYPE_LONG;
+		result_bind.buffer = &user_id;
+		result_bind.is_null = 0;
+
+		if (mysql_stmt_bind_result(stmt, &result_bind) != 0)
 		{
-			std::cout << "mysql_stmt_execute(), UPDATE failed\n";
-			return false;
+			std::cerr << "mysql_stmt_bind_result() failed\n";
+			mysql_stmt_close(stmt);
+			return 0;
+		}
+
+		if (mysql_stmt_execute(stmt) != 0)
+		{
+			std::cerr << "mysql_stmt_exectute(), GET failed for query: " << query_string << '\n';
+			mysql_stmt_close(stmt);
+			return 0;
+		}
+
+		if (mysql_stmt_fetch(stmt) != 0)
+		{
+			std::cerr << "mysql_stmt_fetch(), GET failed for query: " << query_string << '\n';
+			mysql_stmt_close(stmt);
+			return 0;
 		}
 
 		mysql_stmt_close(stmt);
 
-		return true;
-	}
-
-	bool ChatDB::GetUsers(std::string username, TCPChat::Client::user_info_dto& data)
-	{
-		std::string query_string = "SELECT username FROM chat_user WHERE NOT username = '";
-		query_string += username + "';";
-
-		qstate = mysql_query(&mysql, query_string.c_str());
-
-		res = mysql_use_result(&mysql);
-
-		if (qstate != 0)
-		{
-			std::cout << mysql_error(&mysql) << std::endl;
-			mysql_close(connection);
-			return false;
-		}
-
-		int k = 0;
-		while (row = mysql_fetch_row(res)) 
-		{
-			data.usernames.push_back(row[0]);
-		}
-
-		mysql_store_result(&mysql);
-
-		return true;
-	}
-
-	int ChatDB::GetIDByUsername(std::string username)
-	{
-		int user_id = 0;
-
-		std::string query_string = "SELECT id FROM chat_user WHERE username = '";
-		query_string += username + "';";
-
-
-		qstate = mysql_query(&mysql, query_string.c_str());
-
-		if (qstate != 0)
-		{
-			std::cout << mysql_error(&mysql) << std::endl;
-			mysql_close(connection);
-			return 0;
-		}
-
-		res = mysql_store_result(&mysql);
-
-		if ((row = mysql_fetch_row(res)))
-		{
-			user_id = atoi(row[0]);
-		}
-
 		return user_id;
 	}
 
-
-	int ChatDB::GetIDByLogin(std::string login)
+	bool ChatDB::AddMessage(const std::string& message, const std::string& from, const std::string& to)
 	{
-		int user_id = 0;
+		int user_id_from = GetIDByLogin(from);
+		int user_id_to = GetIDByUsername(to);
 
-		std::string query_string = "SELECT id FROM chat_user WHERE login = '";
-		query_string += login + "';";
+		std::string query_string = "INSERT INTO chat_line (sender_id, receiver_id, message_text) VALUES (?, ?, ?)";
 
-
-		qstate = mysql_query(&mysql, query_string.c_str());
-
-		if (qstate != 0)
+		MYSQL_STMT* stmt = mysql_stmt_init(&mysql);
+		if (!stmt)
 		{
-			std::cout << mysql_error(&mysql) << std::endl;
-			mysql_close(connection);
-			return 0;
-		}
-
-		res = mysql_store_result(&mysql);
-
-		if ((row = mysql_fetch_row(res)))
-		{
-			user_id = atoi(row[0]);
-		}
-
-		return user_id;
-	}
-
-	bool ChatDB::AddMessage(const std::string message, const std::string from, const std::string to)
-	{
-		std::cout << "ADD MESSAGE FUNC\n";
-
-		int user_id_form = GetIDByLogin(from);
-		int user_id_to= GetIDByUsername(to);
-
-		std::string query_string = "INSERT INTO chat_line (sender_id, receiver_id, message_text) VALUES ('";
-		query_string += std::to_string(user_id_form) + "','";
-		query_string += std::to_string(user_id_to) + "','";
-		query_string += message + "');";
-		
-		qstate = mysql_query(&mysql, query_string.c_str());
-
-		if (qstate != 0)
-		{
-			std::cout << mysql_error(&mysql) << std::endl;
-			mysql_close(connection);
+			std::cerr << "mysql_stmt_init(), out of memory\n";
 			return false;
 		}
 
-		mysql_store_result(&mysql);
+		if (mysql_stmt_prepare(stmt, query_string.c_str(), query_string.length()) != 0)
+		{
+			std::cerr << "mysql_stmt_prepare(), INSERT failed for query: " << query_string << '\n';
+			mysql_stmt_close(stmt);
+			return false;
+		}
+
+		MYSQL_BIND bind[3];
+		memset(bind, 0, sizeof(bind));
+
+		bind[0].buffer_type = MYSQL_TYPE_LONG;
+		bind[0].buffer = &user_id_from;
+		bind[0].is_null = 0;
+
+		bind[1].buffer_type = MYSQL_TYPE_LONG;
+		bind[1].buffer = &user_id_to;
+		bind[1].is_null = 0;
+
+		bind[2].buffer_type = MYSQL_TYPE_STRING;
+		bind[2].buffer = const_cast<char*>(message.c_str());
+		bind[2].buffer_length = message.length();
+		bind[2].is_null = 0;
+
+		if (mysql_stmt_bind_param(stmt, bind) != 0)
+		{
+			std::cerr << "mysql_stmt_bind_param() failed\n";
+			mysql_stmt_close(stmt);
+			return false;
+		}
+
+		if (mysql_stmt_execute(stmt) != 0)
+		{
+			std::cerr << "mysql_stmt_execute(), INSERT failed for query: " << query_string << '\n';
+			mysql_stmt_close(stmt);
+			return false;
+		}
+
+		mysql_stmt_close(stmt);
 
 		return true;
 	}

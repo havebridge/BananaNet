@@ -18,8 +18,8 @@ namespace Core
 		int qstate = 0;
 
 	private:
-		int GetIDByUsername(std::string username);
-		int GetIDByLogin(std::string login);
+		int GetIDByUsername(const std::string& username);
+		int GetIDByLogin(const std::string& login);
 
 	public:
 		ChatDB() noexcept;
@@ -27,11 +27,11 @@ namespace Core
 
 	public:
 		bool InsertUser(TCPChat::Client::user_info* uinfo, struct sockaddr_in client_info);
-		bool UpdateUserInfo(std::string login);
-		bool GetUsers(std::string username, TCPChat::Client::user_info_dto& users);
+		bool UpdateUserInfo(const std::string& login);
+		bool GetUsers(const std::string& username, TCPChat::Client::user_info_dto& users);
 		void DeleteUsersInfo();
-		bool AddMessage(const std::string message, const std::string from, const std::string to);
-		bool LoadMessageHistory(std::string login);
+		bool AddMessage(const std::string& message, const std::string& from, const std::string& to);
+		bool LoadMessageHistory(const std::string& login);
 		void DeleteUser();
 	};
 }
