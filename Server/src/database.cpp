@@ -34,6 +34,11 @@ namespace Core
 		}
 	}
 
+	/*bool ChatDB::UserExist(const std::string& username, const std::string& login)
+	{
+
+	}*/
+
 	bool ChatDB::InsertUser(TCPChat::Client::user_info* uinfo, struct sockaddr_in client_info)
 	{
 		std::string query_string = "INSERT INTO chat_user (username, login, password, ip, last_visited_at) VALUES (?, ?, ?, ?, NOW())";

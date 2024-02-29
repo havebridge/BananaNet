@@ -41,9 +41,12 @@ namespace TCPChat
 
 	private:
 		void GetClientsInfo();
+		void HandleSignUp(SOCKET client_socket, sockaddr_in client_info, const Client::user_info& client);
+		void HandleSignIn(SOCKET client_socket, sockaddr_in client_info, const Client::user_info& client);
 		bool SearchForClient(Client::user_info* uinfo);
 		bool SendClientsInfo(const Client::user_info_dto& uinfo, SOCKET client_socket);
 		bool SendMessageToClient(json json_data);
+		bool SendErrorMessageToClient(const std::string& error_message);
 		void UpdateSocket(SOCKET new_socket, const std::string login);
 		void ClientHandler();
 		void ProcessData();

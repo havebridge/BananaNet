@@ -98,6 +98,19 @@ namespace TCPChat
 		return running;
 	}
 
+	/*void Server::HandleSignUp(SOCKET client_socket, sockaddr_in client_info, const Client::user_info& client)
+	{
+		if (db.UserExist(client.username, client.login))
+		{
+			
+		}
+	}*/
+
+	/*void Server::HandleSignIn(SOCKET client_socket, sockaddr_in client_info, const Client::user_info& client)
+	{
+
+	}*/
+
 	void Server::ClientHandler()
 	{
 		std::cout << "CLIENT HANDER FUNC\n";
@@ -148,6 +161,8 @@ namespace TCPChat
 		{
 		case Client::ConnectionType::SIGN_UP:
 		{
+			//HandleSignUp(client_socket, client_info, uinfo);
+
 			//TODO: check if username or login already has in db, if so send to client appropriate message
 			std::unique_ptr<Client> client(new Client(client_info, client_socket, uinfo));
 			client_mutex.lock();
@@ -164,6 +179,14 @@ namespace TCPChat
 			if (SearchForClient(&uinfo))
 			{
 				HN_INFO("Client is found");
+				int is_exist = 1;
+				if (send(client_socket, reinterpret_cast<const char*>(&is_exist), sizeof(int), 0) == -1)
+				{
+					HN_ERROR("ClientHandler(): is_exist send");
+					HN_ERROR("WSA Error: {0}", WSAGetLastError());
+				}
+
+
 				client_mutex.lock();
 				std::cout << "Client Socket:" << client_socket << '\n';
 				UpdateSocket(client_socket, uinfo.login);
@@ -182,6 +205,12 @@ namespace TCPChat
 			else
 			{
 				HN_INFO("Client is not found");
+				int is_exist = 0;
+				if (send(client_socket, reinterpret_cast<const char*>(&is_exist), sizeof(int), 0) == -1)
+				{
+					HN_ERROR("ClientHandler(): is_exist send");
+					HN_ERROR("WSA Error: {0}", WSAGetLastError());
+				}
 			}
 		} break;
 		}

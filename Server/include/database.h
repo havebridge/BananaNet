@@ -26,6 +26,8 @@ namespace Core
 		~ChatDB() noexcept;
 
 	public:
+		bool UserExist(const std::string& username, const std::string& login);
+		bool SearchUser(const std::string& login, const std::string& password);
 		bool InsertUser(TCPChat::Client::user_info* uinfo, struct sockaddr_in client_info);
 		bool UpdateUserInfo(const std::string& login);
 		bool GetUsers(const std::string& username, TCPChat::Client::user_info_dto& users);
