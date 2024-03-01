@@ -189,7 +189,7 @@ void Chat::OpenChatWithUser(const std::string name)
 	ui->user_name->setText(QString::fromStdString(name));
 	last_chat_name = name;
 	//TODO: Load all messages from db
-	reciever_thread = std::thread(&addMessage);
+	//reciever_thread = std::thread(&addMessage);
 }
 
 void Chat::addMessage()
@@ -247,7 +247,11 @@ Chat::~Chat()
 		}
 	}
 
-	reciever_thread.join();
+	if (reciever_thread.joinable())
+	{
+		reciever_thread.join();
+	}
+
 
 	delete ui;
 }

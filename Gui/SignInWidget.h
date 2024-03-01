@@ -14,9 +14,9 @@ class SignInWidget : public QWidget
 	Q_OBJECT
 private:
 	Ui::SignInWidgetClass* ui;
-
 	Chat* ChatWidget;
 
+	//static bool already_clicked;
 	TCPChat::Client& client = TCPChat::Client::GetInstance();
 
 	//RecieveUserInfoThread* thread;

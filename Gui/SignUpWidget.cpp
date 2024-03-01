@@ -53,9 +53,8 @@ void SignUpWidget::on_SignUpToButton_clicked()
 			}
 			else
 			{
-				QMessageBox::critical(this, "Error", "Username, Login and Password!");
+				QMessageBox::critical(this, "Error", "Login and Password!");
 			}
-
 		}
 	}
 }

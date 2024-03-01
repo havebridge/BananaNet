@@ -1,11 +1,12 @@
 ﻿#include "SignInWidget.h"
+//bool SignInWidget::already_clicked = false;
 
 SignInWidget::SignInWidget(QWidget* parent)
 	: QWidget(parent)
 {
 	ui = new Ui::SignInWidgetClass;
 	ui->setupUi(this);
-
+	//already_clicked = false;
 	connect(ui->HomeButton, &QPushButton::clicked, this, &SignInWidget::on_HomeButton_clicked);
 	connect(ui->SignInToButton, &QPushButton::clicked, this, &SignInWidget::on_SignInToButton_clicked);
 
@@ -23,6 +24,7 @@ void SignInWidget::on_HomeButton_clicked()
 
 void SignInWidget::on_SignInToButton_clicked()
 {
+	//TODO: fix double click
 	static bool already_clicked = false;
 
 	if (already_clicked == false)
@@ -53,9 +55,11 @@ void SignInWidget::on_SignInToButton_clicked()
 			else
 			{
 				QMessageBox::critical(this, "Error", "Login and Password!");
+				//already_clicked = true;
 			}
 		}
 	}
+	ui->SignInToButton->setEnabled(true);
 }
 
 SignInWidget::~SignInWidget()
