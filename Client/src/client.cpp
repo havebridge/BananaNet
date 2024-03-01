@@ -100,18 +100,27 @@ namespace TCPChat
 		if (send(client_socket, reinterpret_cast<const char*>(&serialized_data_size), sizeof(int), 0) == -1)
 		{
 			std::cout << WSAGetLastError() << '\n';
-			perror("SendUserInfoSignUp: serialized_data_size send");
+			perror("SendUserInfoSignUp(): serialized_data_size send");
 			return false;
 		}
 
 		if (send(client_socket, serialized_data.c_str(), serialized_data_size, 0) == -1)
 		{
 			std::cout << WSAGetLastError() << '\n';
-			perror("SendUserInfoSignUp: serialized_data send");
+			perror("SendUserInfoSignUp(): serialized_data send");
 			return false;
 		}
 
-		return true;
+		bool is_exist = false;
+
+		if (recv(client_socket, (char*)&is_exist, sizeof(bool), 0) == -1)
+		{
+			std::cout << WSAGetLastError() << '\n';
+			perror("SendUserInfoSignUp(): is_exist recv");
+			return false;
+		}
+
+		return (is_exist == true) ? false : true;
 	}
 
 	bool Client::SendUserInfoSignIn(std::string login, std::string password)
@@ -129,14 +138,14 @@ namespace TCPChat
 		if (send(client_socket, reinterpret_cast<const char*>(&serialized_data_size), sizeof(int), 0) == -1)
 		{
 			std::cout << WSAGetLastError() << '\n';
-			perror("SendUserInfoSignUp: serialized_data_size send");
+			perror("SendUserInfoSignUp(): serialized_data_size send");
 			return false;
 		}
 
 		if (send(client_socket, serialized_data.c_str(), serialized_data_size, 0) == -1)
 		{
 			std::cout << WSAGetLastError() << '\n';
-			perror("SendUserInfoSignUp: serialized_data send");
+			perror("SendUserInfoSignUp(): serialized_data send");
 			return false;
 		}
 
