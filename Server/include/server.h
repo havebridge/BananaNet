@@ -46,7 +46,7 @@ namespace TCPChat
 		bool SearchForClient(Client::user_info* uinfo);
 		bool SendClientsInfo(const Client::user_info_dto& uinfo, SOCKET client_socket);
 		bool SendMessageToClient(json json_data);
-		bool SendErrorMessageToClient(const std::string& error_message);
+		void SendInfoMessageToClient(SOCKET client_socket, bool is_exist);
 		void UpdateSocket(SOCKET new_socket, const std::string login);
 		void ClientHandler();
 		void ProcessData();

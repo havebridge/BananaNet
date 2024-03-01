@@ -98,13 +98,23 @@ namespace TCPChat
 		return running;
 	}
 
-	/*void Server::HandleSignUp(SOCKET client_socket, sockaddr_in client_info, const Client::user_info& client)
+	void Server::SendInfoMessageToClient(SOCKET client_socket, bool is_exist)
 	{
-		if (db.UserExist(client.username, client.login))
+		if (send(client_socket, (const char*)&is_exist, sizeof(bool), 0) <= 0)
 		{
-			
+			HN_ERROR("SendClientsInfo(): send is_any_client_connected");
+			HN_ERROR("WSA Error: {0}", WSAGetLastError());
+			return;
 		}
-	}*/
+	}
+
+	void Server::HandleSignUp(SOCKET client_socket, sockaddr_in client_info, const Client::user_info& client)
+	{
+		bool is_exist = db.UserExist(client.username, client.login);
+		SendInfoMessageToClient(client_socket, is_exist);
+
+
+	}
 
 	/*void Server::HandleSignIn(SOCKET client_socket, sockaddr_in client_info, const Client::user_info& client)
 	{
@@ -161,7 +171,7 @@ namespace TCPChat
 		{
 		case Client::ConnectionType::SIGN_UP:
 		{
-			//HandleSignUp(client_socket, client_info, uinfo);
+			HandleSignUp(client_socket, client_info, uinfo);
 
 			//TODO: check if username or login already has in db, if so send to client appropriate message
 			std::unique_ptr<Client> client(new Client(client_info, client_socket, uinfo));

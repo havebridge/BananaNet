@@ -34,10 +34,79 @@ namespace Core
 		}
 	}
 
-	/*bool ChatDB::UserExist(const std::string& username, const std::string& login)
+	bool ChatDB::UserExist(const std::string& username, const std::string& login)
 	{
+		int count = 0;
 
-	}*/
+		std::string query_string = "SELECT COUNT(*) FROM chat_user WHERE username = ? OR login = ?";
+
+		MYSQL_STMT* stmt = mysql_stmt_init(&mysql);
+
+		if (!stmt)
+		{
+			std::cerr << "mysql_stmt_init(), out of memory\n";
+			return false;
+		}
+
+		if (mysql_stmt_prepare(stmt, query_string.c_str(), query_string.length()) != 0)
+		{
+			std::cerr << "mysql_stmt_prepare(), SELECT failed for query: " << query_string << '\n';
+			mysql_stmt_close(stmt);
+			return false;
+		}
+
+		MYSQL_BIND bind[2];
+		memset(bind, 0, sizeof(bind));
+
+		bind[0].buffer_type = MYSQL_TYPE_STRING;
+		bind[0].buffer = const_cast<char*>(username.c_str());
+		bind[0].buffer_length = username.length();
+		bind[0].is_null = 0;
+
+		bind[1].buffer_type = MYSQL_TYPE_STRING;
+		bind[1].buffer = const_cast<char*>(login.c_str());
+		bind[1].buffer_length = login.length();
+		bind[1].is_null = 0;
+
+		if (mysql_stmt_bind_param(stmt, bind) != 0)
+		{
+			std::cerr << "mysql_stmt_bind_param() failed\n";
+			mysql_stmt_close(stmt);
+			return 0;
+		}
+
+		MYSQL_BIND result_bind;
+		memset(&result_bind, 0, sizeof(result_bind));
+
+		result_bind.buffer_type = MYSQL_TYPE_LONG;
+		result_bind.buffer = &count;
+		result_bind.is_null = 0;
+
+		if (mysql_stmt_bind_result(stmt, &result_bind) != 0)
+		{
+			std::cerr << "mysql_stmt_bind_result() failed\n";
+			mysql_stmt_close(stmt);
+			return 0;
+		}
+
+		if (mysql_stmt_execute(stmt) != 0)
+		{
+			std::cerr << "mysql_stmt_exectute(), SELECT failed for query: " << query_string << '\n';
+			mysql_stmt_close(stmt);
+			return 0;
+		}
+
+		if (mysql_stmt_fetch(stmt) != 0)
+		{
+			std::cerr << "mysql_stmt_fetch(), SELECT failed for query: " << query_string << '\n';
+			mysql_stmt_close(stmt);
+			return 0;
+		}
+
+		mysql_stmt_close(stmt);
+
+		return count != 0;
+	}
 
 	bool ChatDB::InsertUser(TCPChat::Client::user_info* uinfo, struct sockaddr_in client_info)
 	{
