@@ -1,14 +1,14 @@
 ﻿#include "SignInWidget.h"
-//bool SignInWidget::already_clicked = false;
 
 SignInWidget::SignInWidget(QWidget* parent)
 	: QWidget(parent)
 {
 	ui = new Ui::SignInWidgetClass;
+
 	ui->setupUi(this);
-	//already_clicked = false;
+
 	connect(ui->HomeButton, &QPushButton::clicked, this, &SignInWidget::on_HomeButton_clicked);
-	connect(ui->SignInToButton, &QPushButton::clicked, this, &SignInWidget::on_SignInToButton_clicked);
+	//connect(ui->SignInToButton, &QPushButton::clicked, this, &SignInWidget::on_SignInToButton_clicked);
 
 	ChatWidget = new Chat();
 
@@ -24,42 +24,33 @@ void SignInWidget::on_HomeButton_clicked()
 
 void SignInWidget::on_SignInToButton_clicked()
 {
-	//TODO: fix double click
-	static bool already_clicked = false;
+	std::cout << "SIGN IN BUTTON CLICKED\n";
 
-	if (already_clicked == false)
+	QString login = ui->LoginLineEdit->text();
+	QString password = ui->PasswordLineEdit->text();
+
+	if (login.isEmpty() || password.isEmpty())
 	{
-		std::cout << "SIGN IN BUTTON CLICKED\n";
-
-		QString login = ui->LoginLineEdit->text();
-		QString password = ui->PasswordLineEdit->text();
-
-		if (login.isEmpty() || password.isEmpty())
+		QMessageBox::critical(this, "Error", "Login and Password could not be empty!");
+	}
+	else if (login.size() > 255 || password.size() > 255)
+	{
+		QMessageBox::critical(this, "Message error", "Login and Password could not be greater than 255 symbols!");
+	}
+	else
+	{
+		if (client.SendUserInfoSignIn(login.toStdString(), password.toStdString()))
 		{
-			QMessageBox::critical(this, "Error", "Login and Password could not be empty!");
-		}
-		else if (login.size() > 255 || password.size() > 255)
-		{
-			QMessageBox::critical(this, "Message error", "Login and Password could not be greater than 255 symbols!");
+			client.RecieveUsersInfo();
+			ui->stackedWidget->setCurrentIndex(1);
+			client.SetMessageInfoFrom(login.toStdString());
+			std::cout << "FROM: " << client.GetMessageInfo().from;
 		}
 		else
 		{
-			if (client.SendUserInfoSignIn(login.toStdString(), password.toStdString()))
-			{
-				client.RecieveUsersInfo();
-				ui->stackedWidget->setCurrentIndex(1);
-				already_clicked = true;
-				client.SetMessageInfoFrom(login.toStdString());
-				std::cout << "FROM: " << client.GetMessageInfo().from;
-			}
-			else
-			{
-				QMessageBox::critical(this, "Error", "Login and Password!");
-				//already_clicked = true;
-			}
+			QMessageBox::critical(this, "Error", "Login and Password!");
 		}
 	}
-	ui->SignInToButton->setEnabled(true);
 }
 
 SignInWidget::~SignInWidget()

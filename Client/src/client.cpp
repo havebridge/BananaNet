@@ -17,7 +17,7 @@ namespace TCPChat
 		recieved_message_size(0) {}
 
 
-	bool Client::Connect(std::string ip, int port)
+	bool Client::Connect(const std::string& ip, int port)
 	{
 		if ((WSAStartup(MAKEWORD(2, 2), &wsa)) != 0)
 		{
@@ -85,7 +85,7 @@ namespace TCPChat
 		client_external_ip = std::string(buffer, read);
 	}
 
-	bool Client::SendUserInfoSignUp(std::string username, std::string login, std::string password)
+	bool Client::SendUserInfoSignUp(const std::string& username, const std::string& login, const std::string& password)
 	{
 		json jsonData = {
 			{"username", username},
@@ -123,7 +123,7 @@ namespace TCPChat
 		return (is_exist == true) ? false : true;
 	}
 
-	bool Client::SendUserInfoSignIn(std::string login, std::string password)
+	bool Client::SendUserInfoSignIn(const std::string& login, const std::string& password)
 	{
 		json json_data = {
 			{"username", std::string()},
@@ -149,9 +149,27 @@ namespace TCPChat
 			return false;
 		}
 
-		return true;
+		bool is_found = false;
+
+		if (recv(client_socket, (char*)&is_found, sizeof(bool), 0) == -1)
+		{
+			std::cout << WSAGetLastError() << '\n';
+			perror("SendUserInfoSignUp(): is_exist recv");
+			return false;
+		}
+
+		return is_found;
 	}
 
+
+	void Client::SendButtonInfo(bool type_button)
+	{
+		if (send(client_socket, (const char*)&type_button, sizeof(bool), 0) == -1)
+		{
+			std::cout << WSAGetLastError() << '\n';
+			perror("SendButtonInfo(): type button send");
+		}
+	}
 
 	void Client::RecieveUsersInfo()
 	{
@@ -197,7 +215,7 @@ namespace TCPChat
 		std::cout << "Client count: " << uinfo_dto.client_count << '\n';
 	}
 
-	void Client::SendMessageText(const std::string message, const std::string from, const std::string to)
+	void Client::SendMessageText(const std::string& message, const std::string& from, const std::string& to)
 	{
 		json json_data;
 		json_data["message"] = message;

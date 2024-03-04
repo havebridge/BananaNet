@@ -41,8 +41,9 @@ namespace TCPChat
 
 	private:
 		void GetClientsInfo();
+		bool GetButtonType(SOCKET client_socket);
 		void HandleSignUp(SOCKET client_socket, sockaddr_in client_info, const Client::user_info& client);
-		void HandleSignIn(SOCKET client_socket, sockaddr_in client_info, const Client::user_info& client);
+		void HandleSignIn(SOCKET client_socket, Client::user_info client_info, Client::user_info_dto client_info_dto);
 		bool SearchForClient(Client::user_info* uinfo);
 		bool SendClientsInfo(const Client::user_info_dto& uinfo, SOCKET client_socket);
 		bool SendMessageToClient(json json_data);

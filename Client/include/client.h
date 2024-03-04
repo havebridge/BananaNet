@@ -89,11 +89,12 @@ namespace TCPChat
 		void SetMessageInfoFrom(std::string from) { message.from = from; }
 
 	public:
-		bool Connect(std::string ip, int port);
-		bool SendUserInfoSignUp(std::string username, std::string login, std::string password);
-		bool SendUserInfoSignIn(std::string login, std::string password);
+		bool Connect(const std::string& ip, int port);
+		bool SendUserInfoSignUp(const std::string& username, const std::string& login, const std::string& password);
+		bool SendUserInfoSignIn(const std::string& login, const std::string& password);
+		void SendButtonInfo(bool type_button);
+		void SendMessageText(const std::string& message, const std::string& from, const std::string& to);
 		void RecieveUsersInfo();
-		void SendMessageText(const std::string message, const std::string from, const std::string to);
 		void RecieveMessageText();
 		void Disconnect();
 		void Run();

@@ -25,6 +25,7 @@ private:
 	std::string client_login;
 	bool is_add_list_widget = false;
 
+
 private slots:
 	void CreateListWidget();
 	void MoveBack();

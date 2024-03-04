@@ -14,23 +14,18 @@ class SignInWidget : public QWidget
 	Q_OBJECT
 private:
 	Ui::SignInWidgetClass* ui;
+
 	Chat* ChatWidget;
 
-	//static bool already_clicked;
 	TCPChat::Client& client = TCPChat::Client::GetInstance();
 
-	//RecieveUserInfoThread* thread;
 private slots:
 	void on_HomeButton_clicked();
 	void on_SignInToButton_clicked();
-	//void on_DataRecieved();
 
 signals:
 	void HomeClicked();
-	//void DataRecieved();
 
-//public:
-//	void StartReceiveDataThread();
 public:
 	SignInWidget(QWidget *parent = nullptr);
 	~SignInWidget();

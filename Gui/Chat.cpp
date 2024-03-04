@@ -7,7 +7,6 @@ Chat::Chat(QWidget* parent)
 	ui->setupUi(this);
 
 
-
 	connect(ui->pushButton, &QPushButton::clicked, this, &Chat::CreateListWidget);
 	connect(ui->Users_SearchLineUsers, &QLineEdit::textChanged, this, &Chat::SearchUsers);
 	connect(ui->backButton, &QPushButton::clicked, this, &Chat::MoveBack);
