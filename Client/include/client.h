@@ -62,7 +62,7 @@ namespace TCPChat
 
 	private:
 		void GetClientExternalIp();
-		void SendData();
+		//void SendData();
 
 	public:
 		friend std::ostream& operator<<(std::ostream& stream, const ConnectionType cType)
@@ -81,7 +81,6 @@ namespace TCPChat
 	public:
 		explicit Client() noexcept;
 		Client(const Client&) = delete;
-		//Client operator=(const Client&) = delete;
 		~Client();
 
 		user_info_dto GetDto() { return uinfo_dto; }
@@ -90,15 +89,19 @@ namespace TCPChat
 
 	public:
 		bool Connect(const std::string& ip, int port);
+
 		bool SendUserInfoSignUp(const std::string& username, const std::string& login, const std::string& password);
 		bool SendUserInfoSignIn(const std::string& login, const std::string& password);
-		void SendButtonInfo(bool type_button);
+		void SendButtonInfo(int type_button);
 		void SendMessageText(const std::string& message, const std::string& from, const std::string& to);
+
 		void RecieveUsersInfo();
 		void RecieveMessageText();
+
 		void Disconnect();
 		void Run();
 
+	public:
 		static Client& GetInstance()
 		{
 			static Client instance;

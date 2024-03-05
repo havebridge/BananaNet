@@ -7,7 +7,7 @@ SignInWidget::SignInWidget(QWidget* parent)
 
 	ui->setupUi(this);
 
-	connect(ui->HomeButton, &QPushButton::clicked, this, &SignInWidget::on_HomeButton_clicked);
+	//connect(ui->HomeButton, &QPushButton::clicked, this, &SignInWidget::on_HomeButton_clicked);
 	//connect(ui->SignInToButton, &QPushButton::clicked, this, &SignInWidget::on_SignInToButton_clicked);
 
 	ChatWidget = new Chat();
@@ -19,6 +19,12 @@ SignInWidget::SignInWidget(QWidget* parent)
 
 void SignInWidget::on_HomeButton_clicked()
 {
+	/*int button_type = 3;
+
+	client.SendButtonInfo(button_type);*/
+
+	std::cout << "home button clicled\n";
+
 	emit HomeClicked();
 }
 

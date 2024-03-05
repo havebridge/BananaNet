@@ -22,20 +22,27 @@ Application::Application(QWidget *parent)
 void Application::on_SignUp_clicked()
 {
 	std::cout << "SignUp clicked\n";
-	//qDebug() << "SignUp clicked\n";
+	button_type = 1;
+
+	client.SendButtonInfo(button_type);
+
 	ui->stackedWidget->setCurrentIndex(1);
 }
 
 void Application::on_SignIn_clicked()
 {
 	std::cout << "SignIn clicked\n";
-	//qDebug() << "SignIn clicked\n";
+	button_type = 2;
+
+	client.SendButtonInfo(button_type);
+
 	ui->stackedWidget->setCurrentIndex(2);
 }
 
 void Application::MoveHome()
 {
 	qDebug() << "Home clicked\n";
+
 	ui->stackedWidget->setCurrentIndex(0);
 }
 

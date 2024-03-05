@@ -8,6 +8,8 @@
 
 using json = nlohmann::json;
 
+#define BACK_BUTTON_TYPE 3
+
 namespace TCPChat
 {
 	class Server
@@ -34,6 +36,7 @@ namespace TCPChat
 		std::condition_variable cv;
 
 		Core::ThreadPool thread_pool;
+		std::atomic<bool> restart_loop = false;
 
 		Core::ChatDB db;
 
@@ -41,16 +44,23 @@ namespace TCPChat
 
 	private:
 		void GetClientsInfo();
-		bool GetButtonType(SOCKET client_socket);
-		void HandleSignUp(SOCKET client_socket, sockaddr_in client_info, const Client::user_info& client);
-		void HandleSignIn(SOCKET client_socket, Client::user_info client_info, Client::user_info_dto client_info_dto);
+		int GetButtonType(SOCKET client_socket);
+		void GetUserInfo(SOCKET client_socket, Client::user_info& client_info);
+
+		bool HandleSignUp(SOCKET client_socket, sockaddr_in client_info, const Client::user_info& client);
+		bool HandleSignIn(SOCKET client_socket, Client::user_info client_info, Client::user_info_dto client_info_dto);
+
 		bool SearchForClient(Client::user_info* uinfo);
+
 		bool SendClientsInfo(const Client::user_info_dto& uinfo, SOCKET client_socket);
 		bool SendMessageToClient(json json_data);
 		void SendInfoMessageToClient(SOCKET client_socket, bool is_exist);
+
 		void UpdateSocket(SOCKET new_socket, const std::string login);
+
 		void ClientHandler();
 		void ProcessData();
+
 		void JoinLoop() { thread_pool.Join(); }
 
 	public:

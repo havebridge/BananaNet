@@ -94,72 +94,105 @@ namespace TCPChat
 
 	void Server::SendInfoMessageToClient(SOCKET client_socket, bool is_exist)
 	{
-		if (send(client_socket, (const char*)&is_exist, sizeof(bool), 0) <= 0)
+		if (send(client_socket, (const char*)&is_exist, sizeof(bool), 0) == -1)
 		{
 			HN_ERROR("SendClientsInfo(): send is_any_client_connected");
 			HN_ERROR("WSA Error: {0}", WSAGetLastError());
-			return;
 		}
 	}
 
-	void Server::HandleSignUp(SOCKET client_socket, sockaddr_in client_info, const Client::user_info& client)
+	void Server::GetUserInfo(SOCKET client_socket, Client::user_info& client_info)
 	{
-		bool is_exist = db.UserExist(client.username, client.login);
+		std::thread input_thread(&Server::GetButtonType, this, client_socket);
+
+		while (!restart_loop)
+		{
+			std::string recieved_buffer;
+			int recieved_buffer_size = 0;
+
+			if (recv(client_socket, (char*)&recieved_buffer_size, sizeof(int), 0) <= 0)
+			{
+				HN_ERROR("ClientHandler(): recieved_buffer_size recv");
+				HN_ERROR("WSA Error: {0}", WSAGetLastError());
+			}
+
+			recieved_buffer.resize(recieved_buffer_size);
+
+			if (recv(client_socket, recieved_buffer.data(), recieved_buffer_size, 0) <= 0)
+			{
+				HN_ERROR("ClientHandler(): recieved_buffer_size recv");
+				HN_ERROR("WSA Error: {0}", WSAGetLastError());
+			}
+
+			json json_data = json::parse(recieved_buffer);
+
+			client_info.username = json_data["username"];
+			client_info.login = json_data["login"];
+			client_info.password = json_data["password"];
+		}
+
+		if (input_thread.joinable())
+		{
+			input_thread.join();
+		}
+	}
+
+	bool Server::HandleSignUp(SOCKET client_socket, sockaddr_in client_info_sockaddr, const Client::user_info& client_info)
+	{
+		bool is_exist = db.UserExist(client_info.username, client_info.login);
 		SendInfoMessageToClient(client_socket, is_exist);
 
-		while (db.UserExist(client.username, client.login)
-		{
-
-		}
+		return (is_exist == true) ? false : true;
 	}
 
-	void Server::HandleSignIn(SOCKET client_socket, Client::user_info client_info, Client::user_info_dto client_info_dto)
+	bool Server::HandleSignIn(SOCKET client_socket, Client::user_info client_info, Client::user_info_dto client_info_dto)
 	{
-		while (true)
+		if (SearchForClient(&client_info))
 		{
-			if (SearchForClient(&client_info))
+			HN_INFO("Client is found");
+			int is_exist = 1;
+			if (send(client_socket, reinterpret_cast<const char*>(&is_exist), sizeof(int), 0) == -1)
 			{
-				HN_INFO("Client is found");
-				int is_exist = 1;
-				if (send(client_socket, reinterpret_cast<const char*>(&is_exist), sizeof(int), 0) == -1)
-				{
-					HN_ERROR("ClientHandler(): is_exist send");
-					HN_ERROR("WSA Error: {0}", WSAGetLastError());
-				}
-
-
-				client_mutex.lock();
-				std::cout << "Client Socket:" << client_socket << '\n';
-				UpdateSocket(client_socket, client_info.login);
-				client_info_dto.client_count = client_count - 1;
-
-				db.UpdateUserInfo(client_info.login);
-				db.GetUsers(client_info.login, client_info_dto);
-				SendClientsInfo(client_info_dto, client_socket);
-
-
-				client_mutex.unlock();
-				break;
+				HN_ERROR("ClientHandler(): is_exist send");
+				HN_ERROR("WSA Error: {0}", WSAGetLastError());
 			}
-			else
+
+
+			client_mutex.lock();
+			std::cout << "Client Socket:" << client_socket << '\n';
+			UpdateSocket(client_socket, client_info.login);
+			client_info_dto.client_count = client_count - 1;
+
+			db.UpdateUserInfo(client_info.login);
+			db.GetUsers(client_info.login, client_info_dto);
+			SendClientsInfo(client_info_dto, client_socket);
+
+
+			client_mutex.unlock();
+			return true;
+		}
+		else
+		{
+			HN_INFO("Client is not found");
+			int is_found = 0;
+			if (send(client_socket, reinterpret_cast<const char*>(&is_found), sizeof(int), 0) == -1)
 			{
-				HN_INFO("Client is not found");
-				int is_found = 0;
-				if (send(client_socket, reinterpret_cast<const char*>(&is_found), sizeof(int), 0) == -1)
-				{
-					HN_ERROR("ClientHandler(): is_exist send");
-					HN_ERROR("WSA Error: {0}", WSAGetLastError());
-				}
+				HN_ERROR("ClientHandler(): is_exist send");
+				HN_ERROR("WSA Error: {0}", WSAGetLastError());
 			}
+
+			return false;
 		}
 	}
 
 	void Server::ClientHandler()
 	{
 		std::cout << "CLIENT HANDER FUNC\n";
-		bool is_connected = false;
+		bool client_connected = false;
+
 		struct sockaddr_in client_info_sockaddr;
 		int client_info_lenght = sizeof(client_info_sockaddr);
+
 		Client::user_info client_info = {};
 		Client::user_info_dto client_info_dto = {};
 
@@ -173,64 +206,68 @@ namespace TCPChat
 		}
 
 		client_count++;
-		while (!is_connected)
+
+		while (!client_connected)
 		{
-			bool button_type = GetButtonType(client_socket);
+			Client::ConnectionType button_type = static_cast<Client::ConnectionType>(GetButtonType(client_socket));
 
-
+			switch (button_type)
+			{
+			case Client::ConnectionType::SIGN_UP:
+			{
+				HN_INFO("Client Pressed Sign up Button");
+				GetUserInfo(client_socket, client_info);
+				client_connected = HandleSignUp(client_socket, client_info_sockaddr, client_info);
+				std::unique_ptr<Client> client(new Client(client_info_sockaddr, client_socket, client_info));
+				client_mutex.lock();
+				HN_INFO("Client connected IP: {0} PORT: {1}", client->GetHost(), client->GetPort());
+				db.InsertUser(&client_info, client_info_sockaddr);
+				clients.emplace_back(std::move(client));
+				client_info_dto.client_count = client_count - 1;
+				db.GetUsers(client_info.login, client_info_dto);
+				SendClientsInfo(client_info_dto, client_socket);
+				client_mutex.unlock();
+			} break;
+			case Client::ConnectionType::SIGN_IN:
+			{
+				HN_INFO("Client Pressed Sign In Button");
+				GetUserInfo(client_socket, client_info);
+				client_connected = HandleSignIn(client_socket, client_info, client_info_dto);
+			} break;
+			default:
+			{
+				HN_INFO("Client Pressed Back Button");
+			} break;
+			}
 		}
 
-		std::string recieved_buffer;
-		int recieved_buffer_size = 0;
 
-		if (recv(client_socket, (char*)&recieved_buffer_size, sizeof(int), 0) <= 0)
-		{
-			HN_ERROR("ClientHandler(): recieved_buffer_size recv");
-			HN_ERROR("WSA Error: {0}", WSAGetLastError());
-		}
-
-		recieved_buffer.resize(recieved_buffer_size);
-
-		if (recv(client_socket, recieved_buffer.data(), recieved_buffer_size, 0) <= 0)
-		{
-			HN_ERROR("ClientHandler(): recieved_buffer_size recv");
-			HN_ERROR("WSA Error: {0}", WSAGetLastError());
-		}
-
-		json json_data = json::parse(recieved_buffer);
-
-		client_info.username = json_data["username"];
-		client_info.login = json_data["login"];
-		client_info.password = json_data["password"];
-		client_info.type = static_cast<Client::ConnectionType>(json_data["type"].get<int>());
+		HN_INFO("username: {0} login: {1} password: {2} type: {3}", client_info.username, client_info.login, client_info.password);
 
 
-		HN_INFO("username: {0} login: {1} password: {2} type: {3}", client_info.username, client_info.login, client_info.password, client_info.type);
+		//switch (client_info.type)
+		//{
+		//case Client::ConnectionType::SIGN_UP:
+		//{
+		//	HandleSignUp(client_socket, client_info_sockaddr, client_info);
 
-
-		switch (client_info.type)
-		{
-		case Client::ConnectionType::SIGN_UP:
-		{
-			HandleSignUp(client_socket, client_info_sockaddr, client_info);
-
-			//TODO: check if username or login already has in db, if so send to client appropriate message
-			std::unique_ptr<Client> client(new Client(client_info_sockaddr, client_socket, client_info));
-			client_mutex.lock();
-			HN_INFO("Client connected IP: {0} PORT: {1}", client->GetHost(), client->GetPort());
-			db.InsertUser(&client_info, client_info_sockaddr);
-			clients.emplace_back(std::move(client));
-			client_info_dto.client_count = client_count - 1;
-			db.GetUsers(client_info.login, client_info_dto);
-			SendClientsInfo(client_info_dto, client_socket);
-			client_mutex.unlock();
-		} break;
-		case Client::ConnectionType::SIGN_IN:
-		{
-			HandleSignIn(client_socket, client_info, client_info_dto);
-		} break;
-		}
-		GetClientsInfo();
+		//	//TODO: check if username or login already has in db, if so send to client appropriate message
+		//	std::unique_ptr<Client> client(new Client(client_info_sockaddr, client_socket, client_info));
+		//	client_mutex.lock();
+		//	HN_INFO("Client connected IP: {0} PORT: {1}", client->GetHost(), client->GetPort());
+		//	db.InsertUser(&client_info, client_info_sockaddr);
+		//	clients.emplace_back(std::move(client));
+		//	client_info_dto.client_count = client_count - 1;
+		//	db.GetUsers(client_info.login, client_info_dto);
+		//	SendClientsInfo(client_info_dto, client_socket);
+		//	client_mutex.unlock();
+		//} break;
+		//case Client::ConnectionType::SIGN_IN:
+		//{
+		//	HandleSignIn(client_socket, client_info, client_info_dto);
+		//} break;
+		//}
+		//GetClientsInfo();
 
 
 		if (running)
@@ -255,14 +292,19 @@ namespace TCPChat
 		}
 	}
 
-	bool Server::GetButtonType(SOCKET client_socket)
+	int Server::GetButtonType(SOCKET client_socket)
 	{
-		bool button_type = false;
+		int button_type = 0;
 
-		if (recv(client_socket, (char*)&button_type, sizeof(bool), 0) == -1)
+		if (recv(client_socket, (char*)&button_type, sizeof(int), 0) == -1)
 		{
 			std::cout << WSAGetLastError() << '\n';
-			perror("RecieveUsersInfo(): is_any_client_connected recv");
+			perror("GetButtonType(): button_type recv");
+		}
+
+		if (button_type == BACK_BUTTON_TYPE)
+		{
+			restart_loop = true;
 		}
 
 		return button_type;
@@ -382,7 +424,7 @@ namespace TCPChat
 					int recieved_buffer_size = 0;
 					unsigned long mode = 1;
 					ioctlsocket(client_socket, FIONBIO, &mode);
-					
+
 
 					if (recv(client_socket, (char*)&recieved_buffer_size, sizeof(int), 0) <= 0)
 					{

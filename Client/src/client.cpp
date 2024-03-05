@@ -91,7 +91,6 @@ namespace TCPChat
 			{"username", username},
 			{"login", login},
 			{"password", password},
-			{"type", static_cast<int>(Client::ConnectionType::SIGN_UP)}
 		};
 
 		std::string serialized_data = jsonData.dump();
@@ -129,7 +128,6 @@ namespace TCPChat
 			{"username", std::string()},
 			{"login", login},
 			{"password", password},
-			{"type", static_cast<int>(Client::ConnectionType::SIGN_IN)}
 		};
 
 		std::string serialized_data = json_data.dump();
@@ -162,9 +160,9 @@ namespace TCPChat
 	}
 
 
-	void Client::SendButtonInfo(bool type_button)
+	void Client::SendButtonInfo(int button_type)
 	{
-		if (send(client_socket, (const char*)&type_button, sizeof(bool), 0) == -1)
+		if (send(client_socket, reinterpret_cast<const char*>(&button_type), sizeof(int), 0) == -1)
 		{
 			std::cout << WSAGetLastError() << '\n';
 			perror("SendButtonInfo(): type button send");

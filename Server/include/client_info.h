@@ -20,8 +20,6 @@ namespace TCPChat
 			std::string username;
 			std::string login;
 			std::string password;
-
-			ConnectionType type;
 		} uinfo;
 
 		struct user_info_dto
