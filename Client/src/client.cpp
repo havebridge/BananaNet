@@ -152,7 +152,7 @@ namespace TCPChat
 		if (recv(client_socket, (char*)&is_found, sizeof(bool), 0) == -1)
 		{
 			std::cout << WSAGetLastError() << '\n';
-			perror("SendUserInfoSignUp(): is_exist recv");
+			perror("SendUserInfoSignUp(): is_found recv");
 			return false;
 		}
 

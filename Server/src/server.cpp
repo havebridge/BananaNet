@@ -103,10 +103,10 @@ namespace TCPChat
 
 	void Server::GetUserInfo(SOCKET client_socket, Client::user_info& client_info)
 	{
-		std::thread input_thread(&Server::GetButtonType, this, client_socket);
+		//std::thread input_thread(&Server::GetButtonType, this, client_socket);
 
-		while (!restart_loop)
-		{
+		//while (!restart_loop)
+		//{
 			std::string recieved_buffer;
 			int recieved_buffer_size = 0;
 
@@ -129,12 +129,12 @@ namespace TCPChat
 			client_info.username = json_data["username"];
 			client_info.login = json_data["login"];
 			client_info.password = json_data["password"];
-		}
+		//}
 
-		if (input_thread.joinable())
+		/*if (input_thread.joinable())
 		{
 			input_thread.join();
-		}
+		}*/
 	}
 
 	bool Server::HandleSignUp(SOCKET client_socket, sockaddr_in client_info_sockaddr, const Client::user_info& client_info)
@@ -150,14 +150,14 @@ namespace TCPChat
 		if (SearchForClient(&client_info))
 		{
 			HN_INFO("Client is found");
-			int is_exist = 1;
-			if (send(client_socket, reinterpret_cast<const char*>(&is_exist), sizeof(int), 0) == -1)
+			bool is_found = true;
+			if (send(client_socket, reinterpret_cast<const char*>(&is_found), sizeof(bool), 0) == -1)
 			{
-				HN_ERROR("ClientHandler(): is_exist send");
+				HN_ERROR("ClientHandler(): is_found send");
 				HN_ERROR("WSA Error: {0}", WSAGetLastError());
 			}
 
-
+			
 			client_mutex.lock();
 			std::cout << "Client Socket:" << client_socket << '\n';
 			UpdateSocket(client_socket, client_info.login);
@@ -174,10 +174,10 @@ namespace TCPChat
 		else
 		{
 			HN_INFO("Client is not found");
-			int is_found = 0;
-			if (send(client_socket, reinterpret_cast<const char*>(&is_found), sizeof(int), 0) == -1)
+			bool is_found = false;
+			if (send(client_socket, reinterpret_cast<const char*>(&is_found), sizeof(bool), 0) == -1)
 			{
-				HN_ERROR("ClientHandler(): is_exist send");
+				HN_ERROR("ClientHandler(): is_found send");
 				HN_ERROR("WSA Error: {0}", WSAGetLastError());
 			}
 
@@ -218,7 +218,9 @@ namespace TCPChat
 				HN_INFO("Client Pressed Sign up Button");
 				GetUserInfo(client_socket, client_info);
 				client_connected = HandleSignUp(client_socket, client_info_sockaddr, client_info);
+				
 				std::unique_ptr<Client> client(new Client(client_info_sockaddr, client_socket, client_info));
+
 				client_mutex.lock();
 				HN_INFO("Client connected IP: {0} PORT: {1}", client->GetHost(), client->GetPort());
 				db.InsertUser(&client_info, client_info_sockaddr);
@@ -241,8 +243,9 @@ namespace TCPChat
 			}
 		}
 
+		GetClientsInfo();
 
-		HN_INFO("username: {0} login: {1} password: {2} type: {3}", client_info.username, client_info.login, client_info.password);
+		HN_INFO("username: {0} login: {1} password: {2}", client_info.username, client_info.login, client_info.password);
 
 
 		//switch (client_info.type)
@@ -275,11 +278,10 @@ namespace TCPChat
 			thread_pool.AddJob(std::bind(&Server::ClientHandler, this));
 		}
 
-		if (clients.size() > 1)
+		if (clients.size() == 2)
 		{
 			thread_pool.AddJob(std::bind(&Server::ProcessData, this));
 		}
-
 	}
 
 	void Server::GetClientsInfo()
@@ -337,19 +339,21 @@ namespace TCPChat
 		json json_data;
 		json_data["usernames"] = uinfo.usernames;
 		json_data["client_count"] = uinfo.client_count;
+
 		std::string serialized_data = json_data.dump();
 		int serialized_data_size = serialized_data.size();
+
 		bool is_any_client_connected = uinfo.client_count == 0 ? false : true;
 		std::cout << "IS any client connected = " << is_any_client_connected;
 
-		if (send(client_socket, (const char*)&is_any_client_connected, sizeof(bool), 0) <= 0)
+		if (send(client_socket, reinterpret_cast<const char*>(&is_any_client_connected), sizeof(bool), 0) == -1)
 		{
 			HN_ERROR("SendClientsInfo(): send is_any_client_connected");
 			HN_ERROR("WSA Error: {0}", WSAGetLastError());
 			return false;
 		}
 
-		if (send(client_socket, (const char*)&serialized_data_size, sizeof(int), 0) <= 0)
+		if (send(client_socket, reinterpret_cast<const char*>(&serialized_data_size), sizeof(int), 0) == -1)
 		{
 			HN_ERROR("SendClientsInfo(): send serialized_data");
 			HN_ERROR("WSA Error: {0}", WSAGetLastError());
@@ -406,7 +410,6 @@ namespace TCPChat
 
 	void Server::ProcessData()
 	{
-		std::cout << "PROCESS DATA FUNC\n";
 		{
 			std::lock_guard lock(client_mutex);
 			for (auto it = clients.begin(), end = clients.end(); it != end; ++it)

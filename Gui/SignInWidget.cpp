@@ -47,8 +47,8 @@ void SignInWidget::on_SignInToButton_clicked()
 	{
 		if (client.SendUserInfoSignIn(login.toStdString(), password.toStdString()))
 		{
-			client.RecieveUsersInfo();
 			ui->stackedWidget->setCurrentIndex(1);
+			client.RecieveUsersInfo();
 			client.SetMessageInfoFrom(login.toStdString());
 			std::cout << "FROM: " << client.GetMessageInfo().from;
 		}
