@@ -18,7 +18,6 @@ private:
 	SignInWidget SignInW;
 
 	TCPChat::Client& client = TCPChat::Client::GetInstance();
-	int button_type;
 
 private slots:
 	void on_SignUp_clicked();

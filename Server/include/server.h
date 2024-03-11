@@ -8,8 +8,6 @@
 
 using json = nlohmann::json;
 
-#define BACK_BUTTON_TYPE 3
-
 namespace TCPChat
 {
 	class Server
@@ -47,7 +45,7 @@ namespace TCPChat
 		int GetButtonType(SOCKET client_socket);
 		void GetUserInfo(SOCKET client_socket, Client::user_info& client_info);
 
-		bool HandleSignUp(SOCKET client_socket, sockaddr_in client_info, const Client::user_info& client);
+		bool HandleSignUp(SOCKET client_socket, sockaddr_in client_info, Client::user_info& client, Client::user_info_dto& client_info_dto);
 		bool HandleSignIn(SOCKET client_socket, Client::user_info client_info, Client::user_info_dto client_info_dto);
 
 		bool SearchForClient(Client::user_info* uinfo);

@@ -273,19 +273,6 @@ namespace TCPChat
 		while (true);
 
 		Disconnect();
-
-		//BOOL bNewBehavior = FALSE;
-		//DWORD dwBytesReturned = 0;
-		//WSAIoctl(client_socket, SIO_UDP_CONNRESET, &bNewBehavior, sizeof bNewBehavior, NULL, 0, &dwBytesReturned, NULL, NULL);
-
-		//SendClientInfo();
-
-		//recieve_thread = (std::thread(&Client::RecieveData, this));
-
-		//while (is_connected)
-		//{
-			//SendData();
-		//}
 	}
 
 	Client::~Client()

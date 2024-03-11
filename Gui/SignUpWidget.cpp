@@ -6,9 +6,6 @@ SignUpWidget::SignUpWidget(QWidget* parent)
 	ui = new Ui::SignUpWidgetClass;
 	ui->setupUi(this);
 
-	//connect(ui->HomeButton, &QPushButton::clicked, this, &SignUpWidget::on_HomeButton_clicked);
-	//connect(ui->SignUpToButton, &QPushButton::clicked, this, &SignUpWidget::on_SignUpToButton_clicked);
-
 	ChatWidget = new Chat();
 
 	ui->stackedWidget->insertWidget(1, ChatWidget);
@@ -18,10 +15,6 @@ SignUpWidget::SignUpWidget(QWidget* parent)
 
 void SignUpWidget::on_HomeButton_clicked()
 {
-	//int button_type = 3;
-
-	//client.SendButtonInfo(button_type);
-
 	std::cout << "home button clicled\n";
 
 	emit HomeClicked();
@@ -30,6 +23,8 @@ void SignUpWidget::on_HomeButton_clicked()
 void SignUpWidget::on_SignUpToButton_clicked()
 {
 	std::cout << "SIGN UP BUTTON CLICKED\n";
+
+	client.SendButtonInfo(TCPChat::Client::ButtonType::SIGN_UP);
 
 	QString username = ui->UsernameLineEdit->text();
 	QString login = ui->LoginLineEdit->text();

@@ -4,15 +4,17 @@
 #include <mutex>
 #include <vector>
 
+
 namespace TCPChat
 {
 	class Client
 	{
 	public:
-		enum ConnectionType : int8_t
+		enum ButtonType : int8_t
 		{
 			SIGN_UP = 1,
-			SIGN_IN
+			SIGN_IN,
+			BACK
 		};
 
 		struct user_info
@@ -63,7 +65,7 @@ namespace TCPChat
 			closesocket(client_socket);
 		}
 	public:
-		friend std::ostream& operator<<(std::ostream& stream, const ConnectionType cType)
+		friend std::ostream& operator<<(std::ostream& stream, const ButtonType cType)
 		{
 			std::string result;
 #define PRINT(a) result = #a;

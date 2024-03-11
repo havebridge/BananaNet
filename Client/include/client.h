@@ -19,12 +19,15 @@ namespace TCPChat
 {
 	class Client
 	{
-	private:
-		enum ConnectionType : int8_t
+	public:
+		enum ButtonType : int8_t
 		{
 			SIGN_UP = 1,
-			SIGN_IN
+			SIGN_IN,
+			BACK
 		};
+
+	private:
 
 		struct user_info_dto
 		{
@@ -62,10 +65,9 @@ namespace TCPChat
 
 	private:
 		void GetClientExternalIp();
-		//void SendData();
 
 	public:
-		friend std::ostream& operator<<(std::ostream& stream, const ConnectionType cType)
+		friend std::ostream& operator<<(std::ostream& stream, const ButtonType cType)
 		{
 			std::string result;
 #define PRINT(a) result = #a;
