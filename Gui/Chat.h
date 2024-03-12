@@ -8,6 +8,7 @@
 #include <QMessageBox>
 
 #include <vector>
+#include <condition_variable>
 
 #include "ui_Chat.h"
 #include "client.h"
@@ -17,8 +18,11 @@ class Chat : public QWidget
 	Q_OBJECT
 private:
 	Ui::ChatClass* ui;
+
 	std::thread reciever_thread;
-	std::mutex mt;
+	std::mutex reciever_thread_mtx;
+	std::condition_variable reciever_thread_cv;
+	std::atomic<bool> stop_thread = false;
 
 	TCPChat::Client& client = TCPChat::Client::GetInstance();
 	std::string last_chat_name;
@@ -29,6 +33,7 @@ private:
 private slots:
 	void CreateListWidget();
 	void MoveBack();
+	void MoveBackFromChat();
 	void SearchUsers(const QString& name);
 	void on_Message_SendButton_clicked();
 

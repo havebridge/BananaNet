@@ -10,7 +10,7 @@ Chat::Chat(QWidget* parent)
 	connect(ui->pushButton, &QPushButton::clicked, this, &Chat::CreateListWidget);
 	connect(ui->Users_SearchLineUsers, &QLineEdit::textChanged, this, &Chat::SearchUsers);
 	connect(ui->backButton, &QPushButton::clicked, this, &Chat::MoveBack);
-	connect(ui->backButtonChat, &QPushButton::clicked, this, &Chat::MoveBack);
+	connect(ui->backButtonChat, &QPushButton::clicked, this, &Chat::MoveBackFromChat);
 	connect(ui->ButtonChat, &QPushButton::clicked, this, &Chat::CreateListWidget);
 	connect(ui->Message_SendButton, &QPushButton::clicked, this, &Chat::on_Message_SendButton_clicked);
 
@@ -188,12 +188,44 @@ void Chat::OpenChatWithUser(const std::string name)
 	ui->user_name->setText(QString::fromStdString(name));
 	last_chat_name = name;
 	//TODO: Load all messages from db
-	//reciever_thread = std::thread(&addMessage);
+	reciever_thread = std::thread(&Chat::addMessage, this);
 }
 
 void Chat::addMessage()
 {
+	while (true)
+	{
+		std::cout << "ADD MESSAGE\n";
+		std::this_thread::sleep_for(std::chrono::microseconds(200));
+
+
+		{
+			std::unique_lock<std::mutex> reciever_thread_lock(reciever_thread_mtx);
+			if (reciever_thread_cv.wait_for(reciever_thread_lock, std::chrono::milliseconds(0), [this] { return stop_thread.load(); }))
+			{
+				break;
+			}
+		}
+	}
+}
 	
+void Chat::MoveBackFromChat()
+{
+	qDebug() << "MoveBackFromChat button clicked\n";
+	ui->stackedWidget->setCurrentIndex(0);
+
+	{
+		std::lock_guard<std::mutex> reciever_thread_lock(reciever_thread_mtx);
+		stop_thread.store(true);
+	}
+
+	reciever_thread_cv.notify_all();
+	if (reciever_thread.joinable())
+	{
+		reciever_thread.join();
+	}
+
+	stop_thread.store(false);
 }
 
 void Chat::MoveBack()
