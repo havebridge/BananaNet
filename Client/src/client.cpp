@@ -238,25 +238,35 @@ namespace TCPChat
 		std::cout << "Message Send: " << message << "\n\n";
 	}
 
-	void Client::RecieveMessageText()
+	bool Client::RecieveMessageText(std::string& message)
 	{
-		std::string recieved_message;
+		//std::string recieved_message;
 		int recieved_message_size = 0;
 
 
+		unsigned long mode = 1;
+
+		ioctlsocket(client_socket, FIONBIO, &mode);
 		if (recv(client_socket, (char*)&recieved_message_size, sizeof(int), 0) <= 0)
 		{
-			std::cout << WSAGetLastError() << '\n';
-			perror("RecieveUsersInfo(): recieved_buffer_size recv");
+			//std::cout << WSAGetLastError() << '\n';
+			//perror("RecieveUsersInfo(): recieved_buffer_size recv");
+			return false;
 		}
+		mode = 0;
+		ioctlsocket(client_socket, FIONBIO, &mode);
 
-		recieved_message.resize(recieved_message_size);
+		message.resize(recieved_message_size);
 
-		if (recv(client_socket, recieved_message.data(), recieved_message_size, 0) <= 0)
+		if (recv(client_socket, message.data(), recieved_message_size, 0) <= 0)
 		{
-			std::cout << WSAGetLastError() << '\n';
-			perror("RecieveUsersInfo(): recieved_buffer_size recv");
+			//std::cout << WSAGetLastError() << '\n';
+			//perror("RecieveUsersInfo(): recieved_buffer_size recv");
+			return false;
 		}
+
+
+		return true;
 	}
 
 	void Client::Disconnect()

@@ -196,9 +196,22 @@ void Chat::addMessage()
 	while (true)
 	{
 		std::cout << "ADD MESSAGE\n";
-		std::this_thread::sleep_for(std::chrono::microseconds(200));
 
+		if (client.RecieveMessageText(message))
+		{
+			QListWidgetItem* item = new QListWidgetItem(QString::fromStdString(message));
+			item->setTextAlignment(Qt::AlignLeft);
+			//item->setTextColor(Qt::white);
+			item->setForeground(Qt::white);
+			ui->message_list->insertItem(-1, item);
+			ui->message_list->scrollToBottom();
 
+			//std::cout << "Message: " << message << '\n';
+		}
+
+		//std::this_thread::sleep_for(std::chrono::microseconds(200));
+		std::this_thread::sleep_for(std::chrono::seconds(1));
+		
 		{
 			std::unique_lock<std::mutex> reciever_thread_lock(reciever_thread_mtx);
 			if (reciever_thread_cv.wait_for(reciever_thread_lock, std::chrono::milliseconds(0), [this] { return stop_thread.load(); }))

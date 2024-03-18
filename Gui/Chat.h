@@ -25,6 +25,7 @@ private:
 	std::atomic<bool> stop_thread = false;
 
 	TCPChat::Client& client = TCPChat::Client::GetInstance();
+	std::string message;
 	std::string last_chat_name;
 	std::string client_login;
 	bool is_add_list_widget = false;

@@ -354,9 +354,9 @@ namespace TCPChat
 
 		if (client != clients.end())
 		{
-			int message_size_net_order = htonl(message_size);
+			//int message_size_net_order = htonl(message_size);
 
-			if (send(client->get()->client_socket, reinterpret_cast<char*>(&message_size_net_order), sizeof(int), 0) == -1)
+			if (send(client->get()->client_socket, reinterpret_cast<char*>(&message_size), sizeof(int), 0) == -1)
 			{
 				HN_ERROR("SendMessageToClient(): send message_size");
 				HN_ERROR("WSA Error: {0}", WSAGetLastError());

@@ -98,7 +98,7 @@ namespace TCPChat
 		void SendMessageText(const std::string& message, const std::string& from, const std::string& to);
 
 		void RecieveUsersInfo();
-		void RecieveMessageText();
+		bool RecieveMessageText(std::string& message);
 
 		void Disconnect();
 		void Run();
