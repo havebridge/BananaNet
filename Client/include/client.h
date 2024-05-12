@@ -28,7 +28,6 @@ namespace TCPChat
 		};
 
 	private:
-
 		struct user_info_dto
 		{
 			std::vector<std::string> usernames;
